@@ -1,0 +1,20 @@
+install:
+	poetry install
+
+dev:
+	poetry run python manage.py runserver
+
+compile:
+	cd task_manager && poetry run django-admin makemessages -l ru && poetry run django-admin compilemessages --ignore=venv
+
+shell:
+	poetry run python manage.py shell
+
+migrate:
+	poetry run python manage.py makemigrations && poetry run python manage.py migrate
+
+collectstatic:
+	poetry run python manage.py collectstatic
+	
+start:
+	poetry run gunicorn -w $(WEB_CONCURRENCY) -b 0.0.0.0:$(PORT) task_manager.wsgi:application
