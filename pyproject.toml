@@ -10,6 +10,11 @@ repository = "https://github.com/ArturSharipov11/python-project-52"
 [tool.poetry.dependencies]
 python = "^3.12"
 django-bootstrap5 = "^24.2"
+python-dotenv = "^1.0.1"
+dj-database-url = "^2.1.0"
+django = "^5.0.4"
+whitenoise = "^6.6.0"
+gunicorn = "^22.0.0"
 
 
 [build-system]
