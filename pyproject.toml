@@ -8,7 +8,7 @@ packages = [{include = "task_manager"}]
 repository = "https://github.com/ArturSharipov11/python-project-52"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10"
 django-bootstrap5 = "^24.2"
 python-dotenv = "^1.0.1"
 dj-database-url = "^2.1.0"
