@@ -14,18 +14,26 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
 from django.urls import path, include
 from task_manager import views
-from django.views.generic import TemplateView
-
+import task_manager.users.views as view
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('admin/', admin.site.urls),
     path('users/', include('task_manager.users.urls')),
     path('statuses/', include('task_manager.statuses.urls')),
     path('tasks/', include('task_manager.tasks.urls')),
-    path('login/', views.LogIn.as_view(), name='login'),
-    path('logout/', views.logout_user, name='logout')
 ]
+
+urlpatterns += i18n_patterns(
+    path('i18n/', include('django.conf.urls.i18n')),
+    path('', views.MainIndexView.as_view(), name='main_index'),
+    path('users/', include('task_manager.users.urls')),
+    path('statuses/', include('task_manager.statuses.urls')),
+    path('tasks/', include('task_manager.tasks.urls')),
+    path('login/', views.LoginUserFormView.as_view(), name='login'),
+    path('logout/', views.LogoutUserView.as_view(), name='logout'),
+    prefix_default_language=False
+)

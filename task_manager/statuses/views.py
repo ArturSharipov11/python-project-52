@@ -1,41 +1,47 @@
-from django.shortcuts import render
 from django.contrib import messages
-from django.shortcuts import redirect
-from django.utils.translation import gettext as _
-from django.views import View
-from .models import Status
-from .forms import StatusForm
-from django.views.generic import CreateView, ListView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.translation import gettext as _
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView
+
+from .models import StatusModel
+from .forms import StatusModelForm
+from task_manager.mixins import CustomLoginRequiredMixin
 
 
-class ListStatuses(LoginRequiredMixin, ListView):
-    model = Status
-    template_name = "statuses/statuses_list.html"
+class StatusesView(CustomLoginRequiredMixin, ListView):
+    template_name = 'statuses/statuses.html'
+    model = StatusModel
     context_object_name = 'statuses'
 
 
-class CreateStatus(LoginRequiredMixin, SuccessMessageMixin, CreateView):
-    model = Status
-    form_class = StatusForm
-    template_name = "statuses/create.html"
-    success_url = reverse_lazy("statuses")
-    success_message = _('Status successfully created')
+class CreateStatus(CustomLoginRequiredMixin, CreateView):
+    template_name = 'statuses/create.html'
+    form_class = StatusModelForm
+
+    def form_valid(self, form):
+        messages.success(
+            self.request, _('Status successfully created')
+        )
+        return super().form_valid(form)
 
 
-class UpdateStatus(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    model = Status
-    form_class = StatusForm
-    template_name = "statuses/update.html"
-    success_url = reverse_lazy("statuses")
-    success_message = _('Status successfully changed')
+class UpdateStatus(CustomLoginRequiredMixin, UpdateView):
+    template_name = 'statuses/update.html'
+    form_class = StatusModelForm
+    model = StatusModel
+
+    def form_valid(self, form):
+        messages.success(
+            self.request, _('Status successfully changed')
+        )
+        return super().form_valid(form)
 
 
-class DeleteStatus(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    model = Status
-    template_name = "statuses/delete.html"
-    context_object_name = 'status'
-    success_url = reverse_lazy("statuses")
-    success_message = _('Status successfully deleted')
+class DeleteStatus(CustomLoginRequiredMixin, DeleteView):
+
+    model = StatusModel
+    template_name = 'statuses/delete.html'
+    success_url = reverse_lazy('statuses')
+    msg_success = 'Status deleted successfully!'
+    msg_error = 'Cannot delete status because it is in use'
+    url_redirect = 'statuses'

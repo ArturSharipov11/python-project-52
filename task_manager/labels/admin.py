@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.contrib.admin import DateFieldListFilter
 
-from .models import StatusModel
+from .models import LabelModel
 
 
-@admin.register(StatusModel)
-class StatusAdmin(admin.ModelAdmin):
+@admin.register(LabelModel)
+class LabelAdmin(admin.ModelAdmin):
     list_display = ('name',
                     'created_at')
     search_fields = ['name', 'created_at']

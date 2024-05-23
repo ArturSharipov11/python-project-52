@@ -1,38 +1,56 @@
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView
+from .forms import CustomUserCreationForm, CustomUserUpdateForm
 from django.utils.translation import gettext as _
 from django.contrib.auth.models import User
-from django.views.generic import CreateView, ListView, UpdateView, DeleteView
-from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
-from .forms import UserForm
-from .mixins import RulesMixin
+from task_manager.mixins import CustomLoginRequiredMixin
+from .mixins import CustomAccessMixin
 
 
-class CreateUser(SuccessMessageMixin, CreateView):
-    form_class = UserForm
-    success_url = reverse_lazy("login")
-    template_name = "users/create.html"
-    success_message = _('User successfully created')
+# Create your views here.
+class UsersView(ListView):
 
-
-class ListUsers(ListView):
+    template_name = 'users/users.html'
     model = User
-    template_name = "users/users_list.html"
     context_object_name = 'users'
 
 
-class UpdateUser(RulesMixin, SuccessMessageMixin, UpdateView):
-    model = User
-    form_class = UserForm
-    template_name = "users/update.html"
-    success_url = reverse_lazy("users")
-    success_message = _('User successfully changed')
+class UserFormCreateView(CreateView):
+    template_name = 'users/create.html'
+    form_class = CustomUserCreationForm
+    success_url = reverse_lazy('login')
+
+    def form_valid(self, form):
+        form.save()
+        messages.success(self.request, _("Your profile has been successfully created!"))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, _("Please refill the form!"))
+        return super().form_invalid(form)
 
 
-class DeleteUser(RulesMixin, SuccessMessageMixin, DeleteView):
+class UserFormUpdateView(CustomLoginRequiredMixin,
+                         CustomAccessMixin, UpdateView):
+
     model = User
-    template_name = "users/delete.html"
-    context_object_name = 'user'
-    success_url = reverse_lazy("users")
-    success_message = _('User successfully deleted')
+    template_name = 'users/update.html'
+    form_class = CustomUserUpdateForm
+    success_url = reverse_lazy('users')
+
+    def form_valid(self, form):
+        messages.success(self.request, _("User successfully changed"))
+        return super().form_valid(form)
+
+
+class UserFormDeleteView(CustomLoginRequiredMixin,
+                         CustomAccessMixin, DeleteView):
+
+    model = User
+    template_name = 'users/delete.html'
+    success_url = reverse_lazy('users')
+
+    def form_valid(self, form):
+        messages.success(self.request, _('User deleted successfully'))
+        return super().form_valid(form)

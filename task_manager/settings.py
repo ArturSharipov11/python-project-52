@@ -34,6 +34,8 @@ DEBUG = os.getenv('DEBUG', False) == True
 
 ALLOWED_HOSTS = [
     '*',
+    'localhost',
+    '127.0.0.1',
     'webserver',
 ]
 
@@ -48,7 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_bootstrap5',
     'task_manager',
-    'task_manager.users.apps.UsersConfig',
+    'task_manager.users',
     'task_manager.statuses',
     'task_manager.tasks',
 ]
@@ -131,11 +133,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = 'task_manager/templates/staticfiles/'
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'task_manager' / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login/'
 LOGOUT_URL = 'logout/'

@@ -1,8 +1,10 @@
-from django.forms import ModelForm
-from .models import Status
+from django import forms
+
+from .models import StatusModel
 
 
-class StatusForm(ModelForm):
+class StatusModelForm(forms.ModelForm):
+
     class Meta:
-        model = Status
+        model = StatusModel
         fields = ['name']
