@@ -2,7 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
+from task_manager.labels.models import LabelModel
 from task_manager.statuses.models import StatusModel
 from task_manager.users.models import Person
 
@@ -44,6 +44,12 @@ class TaskModel(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Author'),
         related_name='author'
+    )
+    labels = models.ManyToManyField(
+        LabelModel,
+        blank=True,
+        verbose_name=_('Labels'),
+        help_text=_('Select one or more tags.')
     )
     created_at = models.DateTimeField(default=timezone.now)
 
