@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-13 21:59+0500\n"
+"POT-Creation-Date: 2024-05-25 18:46+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,118 +19,364 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-#: templates/components/header.html:5 templates/components/nav.html:10
-#: templates/index.html:14
-msgid "Task manager"
+
+#: labels/models.py:12 statuses/models.py:12
+msgid "Task status with such Name already exist."
 msgstr ""
 
-#: templates/components/nav.html:14 templates/users/index.html:6
-msgid "Users"
+#: labels/models.py:14 statuses/models.py:14 tasks/models.py:17
+#: templates/labels/labels.html:17 templates/labels/update.html:15
+#: templates/labels/update.html:16 templates/statuses/create.html:14
+#: templates/statuses/create.html:15 templates/statuses/statuses.html:16
+#: templates/statuses/update.html:14 templates/statuses/update.html:15
+#: templates/tasks/tasks.html:25 templates/users/create.html:14
+#: templates/users/create.html:15
+msgid "Name"
 msgstr ""
 
-#: templates/components/nav.html:20
-msgid "Exit"
+#: labels/views.py:23
+msgid "Label successfully created"
 msgstr ""
 
-#: templates/components/nav.html:26 templates/users/login.html:6
-#: templates/users/login.html:19
-msgid "Entrance"
+#: labels/views.py:34
+msgid "Label successfully changed"
 msgstr ""
 
-#: templates/components/nav.html:29 templates/users/create.html:7
-msgid "Registration"
-msgstr ""
-
-#: templates/index.html:15
-msgid ""
-"Task management system. It allows you to set tasks, assign performers and "
-"change their statuses. Registration and authentication are required to work "
-"with the system."
-msgstr ""
-
-#: templates/index.html:17
-msgid "Project page on GitHub"
-msgstr ""
-
-#: templates/users/create.html:11
-msgid "Register"
-msgstr ""
-
-#: templates/users/delete.html:7
-msgid "Deleting a user"
-msgstr ""
-
-#: templates/users/delete.html:8
-msgid "Are you sure you want to delete"
-msgstr ""
-
-#: templates/users/delete.html:11
-msgid "Yes, delete"
-msgstr ""
-
-#: templates/users/index.html:11 templates/users/layout_form.html:24
-#: templates/users/layout_form.html:29 templates/users/login.html:14
-#: templates/users/login.html:15
-msgid "Username"
-msgstr ""
-
-#: templates/users/index.html:12
-msgid "Full username"
-msgstr ""
-
-#: templates/users/index.html:13
-msgid "Date of creation"
-msgstr ""
-
-#: templates/users/layout_form.html:4 templates/users/layout_form.html:8
-msgid "Fist name"
-msgstr ""
-
-#: templates/users/layout_form.html:14 templates/users/layout_form.html:18
-msgid "Last name"
-msgstr ""
-
-#: templates/users/layout_form.html:40 templates/users/layout_form.html:44
-#: templates/users/login.html:17
-msgid "Password"
-msgstr ""
-
-#: templates/users/layout_form.html:51 templates/users/layout_form.html:55
-msgid "Password confirmation"
-msgstr ""
-
-#: templates/users/update.html:7
-msgid "Change user"
-msgstr ""
-
-#: templates/users/update.html:12
-msgid "Change"
-msgstr ""
-
-#: users/mixins.py:13
+#: mixins.py:13 tasks/mixins.py:15
 msgid "You are not authorized! Please log in."
 msgstr ""
 
-#: users/mixins.py:16
-msgid "You do not have permission to change another user."
+#: statuses/views.py:23
+msgid "Status successfully created"
 msgstr ""
 
-#: users/views.py:16
-msgid "User successfully created"
+#: statuses/views.py:35
+msgid "Status successfully changed"
 msgstr ""
 
-#: users/views.py:30
+#: tasks/filters.py:12 tasks/models.py:30 templates/tasks/tasks.html:26
+#: templates/tasks/view_task.html:28
+msgid "Status"
+msgstr ""
+
+#: tasks/filters.py:16 tasks/models.py:36 templates/tasks/tasks.html:28
+#: templates/tasks/view_task.html:24
+msgid "Executor"
+msgstr ""
+
+#: tasks/filters.py:20
+msgid "Label"
+msgstr ""
+
+#: tasks/filters.py:24
+msgid "Only my tasks"
+msgstr ""
+
+#: tasks/mixins.py:25
+msgid "Only its author can delete a task"
+msgstr ""
+
+#: tasks/models.py:15
+msgid "Task with such Name already exist."
+msgstr ""
+
+#: tasks/models.py:18
+msgid "Obligatory field."
+msgstr ""
+
+#: tasks/models.py:22
+msgid "Description"
+msgstr ""
+
+#: tasks/models.py:25
+msgid "Describe the task."
+msgstr ""
+
+#: tasks/models.py:31
+msgid "Obligatory field. Select one of the task statuses."
+msgstr ""
+
+#: tasks/models.py:40
+msgid "Select the task executor."
+msgstr ""
+
+#: tasks/models.py:45 templates/tasks/tasks.html:27
+#: templates/tasks/view_task.html:20
+msgid "Author"
+msgstr ""
+
+#: tasks/models.py:51 templates/header.html:46 templates/labels/labels.html:11
+#: templates/tasks/view_task.html:37
+msgid "Labels"
+msgstr ""
+
+#: tasks/models.py:52
+msgid "Select one or more tags."
+msgstr ""
+
+#: tasks/views.py:50
+msgid "Task has been successfully created"
+msgstr ""
+
+#: tasks/views.py:62
+msgid "Task successfully changed"
+msgstr ""
+
+#: tasks/views.py:73
+msgid "Task deleted successfully!"
+msgstr ""
+
+#: templates/header.html:23 templates/header.html:30
+msgid "Task manager"
+msgstr ""
+
+#: templates/header.html:37 templates/users/user_list.html:6
+#: templates/users/users.html:10
+msgid "Users"
+msgstr ""
+
+#: templates/header.html:43 templates/statuses/statuses.html:10
+msgid "Statuses"
+msgstr ""
+
+#: templates/header.html:49 templates/tasks/tasks.html:11
+msgid "Tasks"
+msgstr ""
+
+#: templates/header.html:52
+msgid "Logout"
+msgstr ""
+
+#: templates/header.html:59
+msgid "Login"
+msgstr ""
+
+#: templates/header.html:62 templates/users/create.html:10
+msgid "Registration"
+msgstr ""
+
+#: templates/index.html:13
+msgid "Hello from Hexlet!"
+msgstr ""
+
+#: templates/index.html:14
+msgid "Practical programming courses"
+msgstr ""
+
+#: templates/index.html:16
+msgid "Learn more"
+msgstr ""
+
+#: templates/labels/create.html:11 templates/labels/labels.html:12
+msgid "Create label"
+msgstr ""
+
+#: templates/labels/create.html:15 templates/tasks/create.html:15
+msgid "Create"
+msgstr ""
+
+#: templates/labels/delete.html:10
+msgid "Delete label"
+msgstr ""
+
+#: templates/labels/delete.html:11
+msgid "Are you sure you want to delete"
+msgstr ""
+
+#: templates/labels/delete.html:14 templates/statuses/delete.html:16
+#: templates/tasks/delete.html:16 templates/users/delete.html:16
+msgid "Yes, delete"
+msgstr ""
+
+#: templates/labels/labels.html:18 templates/tasks/tasks.html:29
+#: templates/tasks/view_task.html:32 templates/users/user_list.html:13
+msgid "Date of creation"
+msgstr ""
+
+#: templates/labels/labels.html:30 templates/statuses/statuses.html:29
+#: templates/tasks/update.html:15 templates/tasks/view_task.html:47
+#: templates/users/users.html:30
+msgid "Update"
+msgstr ""
+
+#: templates/labels/labels.html:32 templates/statuses/statuses.html:31
+#: templates/tasks/tasks.html:50 templates/tasks/view_task.html:49
+#: templates/users/users.html:32
+msgid "Delete"
+msgstr ""
+
+#: templates/labels/update.html:11
+msgid "Edit label"
+msgstr ""
+
+#: templates/labels/update.html:18 templates/tasks/tasks.html:48
+msgid "Edit"
+msgstr ""
+
+#: templates/login.html:16 templates/users/update.html:10
+msgid "Entrance"
+msgstr ""
+
+#: templates/login.html:21 templates/login.html:22
+#: templates/users/create.html:22 templates/users/create.html:23
+#: templates/users/update.html:22 templates/users/update.html:23
+#: templates/users/user_list.html:11 templates/users/users.html:15
+msgid "Username"
+msgstr ""
+
+#: templates/login.html:25 templates/login.html:26
+#: templates/users/create.html:27 templates/users/create.html:28
+#: templates/users/update.html:27 templates/users/update.html:28
+msgid "Password"
+msgstr ""
+
+#: templates/login.html:28
+msgid "Log in"
+msgstr ""
+
+#: templates/statuses/create.html:10 templates/statuses/create.html:17
+#: templates/statuses/statuses.html:11
+msgid "Create status"
+msgstr ""
+
+#: templates/statuses/delete.html:10
+msgid "Deleting a status"
+msgstr ""
+
+#: templates/statuses/delete.html:12
+msgid "Are you sure you want to delete the status"
+msgstr ""
+
+#: templates/statuses/statuses.html:17 templates/users/users.html:17
+msgid "Creation date"
+msgstr ""
+
+#: templates/statuses/update.html:10 templates/statuses/update.html:17
+msgid "Update status"
+msgstr ""
+
+#: templates/tasks/create.html:11 templates/tasks/tasks.html:12
+msgid "Create task"
+msgstr ""
+
+#: templates/tasks/delete.html:10
+msgid "Deleting a task"
+msgstr ""
+
+#: templates/tasks/delete.html:12
+msgid "Are you sure you want to delete the task"
+msgstr ""
+
+#: templates/tasks/tasks.html:17
+msgid "Show"
+msgstr ""
+
+#: templates/tasks/update.html:11
+msgid "Update task"
+msgstr ""
+
+#: templates/tasks/view_task.html:10
+msgid "View a task"
+msgstr ""
+
+#: templates/users/create.html:18 templates/users/create.html:19
+msgid "Surname"
+msgstr ""
+
+#: templates/users/create.html:24
+msgid ""
+"Obligatory field. No more than 150 characters. Only letters, numbers and "
+"symbols  @/./+/-/_."
+msgstr ""
+
+#: templates/users/create.html:30 templates/users/update.html:31
+msgid "Your password must contain at least 3 characters."
+msgstr ""
+
+#: templates/users/create.html:34 templates/users/create.html:35
+msgid "Password confirm"
+msgstr ""
+
+#: templates/users/create.html:36 templates/users/update.html:38
+msgid "To confirm, please enter your password again."
+msgstr ""
+
+#: templates/users/create.html:38
+msgid "Registry"
+msgstr ""
+
+#: templates/users/delete.html:10
+msgid "Deleting a user"
+msgstr ""
+
+#: templates/users/delete.html:12
+msgid "Are you sure you want to delete the user"
+msgstr ""
+
+#: templates/users/update.html:14 templates/users/update.html:15
+msgid "First name"
+msgstr ""
+
+#: templates/users/update.html:18 templates/users/update.html:19
+msgid "Last name"
+msgstr ""
+
+#: templates/users/update.html:24
+msgid ""
+"Obligatory field. No more than 150 characters. Only letters, numbers and "
+"symbols @/./+/-/_."
+msgstr ""
+
+#: templates/users/update.html:36 templates/users/update.html:37
+msgid "Password confirmation"
+msgstr ""
+
+#: templates/users/update.html:40
+msgid "Change"
+msgstr ""
+
+#: templates/users/user_list.html:12
+msgid "Full username"
+msgstr ""
+
+#: templates/users/users.html:16
+msgid "Full name"
+msgstr ""
+
+#: users/mixins.py:13
+msgid "You don't have permission to change other user"
+msgstr ""
+
+#: users/views.py:28
+msgid "Your profile has been successfully created!"
+msgstr ""
+
+#: users/views.py:32
+msgid "Please refill the form!"
+msgstr ""
+
+#: users/views.py:45
 msgid "User successfully changed"
 msgstr ""
 
-#: users/views.py:38
-msgid "User successfully deleted"
+#: users/views.py:62
+msgid "Cannot delete user because it is in use"
 msgstr ""
 
-#: views.py:11
+#: users/views.py:66
+msgid "User deleted successfully"
+msgstr ""
+
+#: views.py:18
 msgid "You are logged in"
 msgstr ""
 
-#: views.py:16
+#: views.py:24
+msgid ""
+"Please enter the correct username and password. Both fields can be case "
+"sensitive."
+msgstr ""
+
+#: views.py:35
 msgid "You are logged out"
 msgstr ""
