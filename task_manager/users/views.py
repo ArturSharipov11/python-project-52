@@ -11,8 +11,8 @@ from task_manager.tasks.models import TaskModel
 
 
 # Create your views here.
-class UsersView(ListView):
 
+class UsersView(ListView):
     template_name = 'users/users.html'
     model = User
     context_object_name = 'users'

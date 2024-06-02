@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth.mixins import AccessMixin
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
-
 from .models import TaskModel
 
 
