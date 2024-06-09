@@ -33,7 +33,10 @@
                     <a class="nav-link" href="{% url 'tasks' %}">{% translate 'Tasks' %}</a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'logout' %}" class="nav-link">{% translate 'Logout' %}</a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <input class="btn nav-link" type="submit" value="{% translate 'Log Out' %}">
+                    </form>
                 </li>
                 {% endif %}
             </ul>

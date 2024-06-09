@@ -10,8 +10,6 @@ from .mixins import CustomAccessMixin
 from task_manager.tasks.models import TaskModel
 
 
-# Create your views here.
-
 class UsersView(ListView):
     template_name = 'users/users.html'
     model = User
