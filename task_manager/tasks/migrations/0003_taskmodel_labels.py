@@ -14,6 +14,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='taskmodel',
             name='labels',
-            field=models.ManyToManyField(blank=True, help_text='Select one or more tags.', to='labels.labelmodel', verbose_name='Labels'),
+            field=models.ManyToManyField(
+                lank=True,
+                help_text='Select one or more tags.',
+                to='labels.labelmodel',
+                verbose_name='Labels'),
         ),
     ]

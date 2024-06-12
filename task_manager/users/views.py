@@ -23,7 +23,9 @@ class UserFormCreateView(CreateView):
 
     def form_valid(self, form):
         form.save()
-        messages.success(self.request, _("Your profile has been successfully created!"))
+        messages.success(self.request, _(
+            "Your profile has been successfully created!"
+            ))
         return super().form_valid(form)
 
     def form_invalid(self, form):

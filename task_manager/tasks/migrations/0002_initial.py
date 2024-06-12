@@ -18,16 +18,31 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='taskmodel',
             name='author',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='author', to='users.person', verbose_name='Author'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='author',
+                to='users.person',
+                verbose_name='Author'),
         ),
         migrations.AddField(
             model_name='taskmodel',
             name='executor',
-            field=models.ForeignKey(blank=True, help_text='Select the task executor.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='executor', to='users.person', verbose_name='Executor'),
+            field=models.ForeignKey(
+                blank=True,
+                help_text='Select the task executor.',
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='executor',
+                to='users.person',
+                verbose_name='Executor'),
         ),
         migrations.AddField(
             model_name='taskmodel',
             name='status',
-            field=models.ForeignKey(help_text='Obligatory field. Select one of the task statuses.', on_delete=django.db.models.deletion.PROTECT, to='statuses.statusmodel', verbose_name='Status'),
+            field=models.ForeignKey(
+                help_text='Obligatory field. Select one of the task statuses.',
+                on_delete=django.db.models.deletion.PROTECT,
+                to='statuses.statusmodel',
+                verbose_name='Status'),
         ),
     ]

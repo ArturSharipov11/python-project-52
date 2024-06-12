@@ -15,11 +15,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LabelModel',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True,
-                                           serialize=False, verbose_name='ID')),
-                ('name', models.CharField(error_messages={'unique': 'Task status with such Name already exist.'},
-                                          max_length=255, unique=True, verbose_name='Name')),
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('id', models.BigAutoField(
+                    auto_created=True, primary_key=True,
+                    serialize=False, verbose_name='ID'
+                    )),
+                ('name', models.CharField(
+                    error_messages={
+                        'unique': 'Task status with such Name already exist.'
+                        },
+                    max_length=255, unique=True, verbose_name='Name')),
+                ('created_at', models.DateTimeField(
+                    default=django.utils.timezone.now)),
             ],
         ),
     ]
