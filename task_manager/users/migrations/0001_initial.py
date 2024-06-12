@@ -44,7 +44,8 @@ class Migration(migrations.Migration):
                     max_length=150,
                     unique=True,
                     validators=[
-                        django.contrib.auth.validators.UnicodeUsernameValidator()
+                        django.contrib.auth.validators.
+                        UnicodeUsernameValidator()
                         ],
                     verbose_name='username')),
                 ('first_name', models.CharField(blank=True,
@@ -85,7 +86,7 @@ class Migration(migrations.Migration):
                     blank=True,
                     help_text='Specific permissions for this user.',
                     related_name='user_set',
-                    elated_query_name='user',
+                    related_query_name='user',
                     to='auth.permission',
                     verbose_name='user permissions')),
             ],

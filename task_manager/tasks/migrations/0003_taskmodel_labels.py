@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             model_name='taskmodel',
             name='labels',
             field=models.ManyToManyField(
-                lank=True,
+                blank=True,
                 help_text='Select one or more tags.',
                 to='labels.labelmodel',
                 verbose_name='Labels'),
