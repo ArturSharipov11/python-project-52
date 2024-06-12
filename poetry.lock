@@ -30,6 +30,7 @@ files = [
 
 [package.dependencies]
 colorama = {version = "*", markers = "os_name == \"nt\""}
+importlib-metadata = {version = ">=4.6", markers = "python_full_version < \"3.10.2\""}
 packaging = ">=19.1"
 pyproject_hooks = "*"
 tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
@@ -1523,5 +1524,5 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.10.4"
-content-hash = "db61c7dacf623e48610c269e6b8434488d430cd81ec679ab585722c44cf59c3f"
+python-versions = "^3.10"
+content-hash = "2f7178e3b7911abb5bb16fd35ced151f4b4ffd476059ae3798edc3e4a23dd11e"
