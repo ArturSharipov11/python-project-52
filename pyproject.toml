@@ -25,6 +25,10 @@ poetry-dotenv = "^0.4.0"
 coverage = "^7.5.3"
 
 
+[tool.poetry.group.dev.dependencies]
+coverage = "^7.3.2"
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
