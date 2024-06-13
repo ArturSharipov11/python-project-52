@@ -5,7 +5,7 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 
 from .models import StatusModel
 from .forms import StatusModelForm
-from task_manager.mixins import CustomLoginRequiredMixin
+from task_manager.mixins import CustomLoginRequiredMixin, CheckDependencyMixin
 
 
 class StatusesView(CustomLoginRequiredMixin, ListView):
@@ -37,7 +37,7 @@ class UpdateStatus(CustomLoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class DeleteStatus(CustomLoginRequiredMixin, DeleteView):
+class DeleteStatus(CustomLoginRequiredMixin, CheckDependencyMixin, DeleteView):
 
     model = StatusModel
     template_name = 'statuses/delete.html'
