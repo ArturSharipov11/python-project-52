@@ -1,23 +1,18 @@
+{% extends "base.html" %}
+
+{% load django_bootstrap5 %}
 {% load i18n %}
 
-{% include 'header.html' %}
+{% block main %}
+  <main>
+      <h1 class="my-4"> {% translate "LogIn" %} </h1>
+      <form method="post">
+        {% csrf_token %}
 
-<html lang="en">
-<div class="container wrapper flex-grow-1">
-    <h1 class="my-4">{% translate 'Entrance' %}</h1>
-    {% include 'messages.html' %}
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-      <label class="form-label" for="id_username">{% translate 'Username' %}</label>
-      <input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" class="form-control" placeholder="{% translate 'Username' %}" required id="id_username">
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="id_password">{% translate 'Password' %}</label>
-        <input type="password" name="password" autocomplete="current-password" class="form-control" placeholder="{% translate 'Password' %}" required id="id_password">
-    </div>
-    <input class="btn btn-primary" type="submit" value="{% translate 'Log in' %}">
-</form>
-</div>
-{% include 'footer.html' %}
-</html>
+        {% bootstrap_form form %}
+
+        {% translate "LogIn" as button_text %}
+        {% bootstrap_button button_type="submit" content=button_text %}
+      </form>
+  </main>
+{% endblock %}
