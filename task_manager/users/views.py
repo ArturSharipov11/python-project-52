@@ -1,67 +1,98 @@
-from django.contrib import messages
-from django.views.generic import CreateView, UpdateView, DeleteView, ListView
-from .forms import CustomUserCreationForm, CustomUserUpdateForm
-from django.utils.translation import gettext as _
-from django.contrib.auth.models import User
+from typing import Any
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
+from django.db.models.deletion import ProtectedError
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.messages.views import SuccessMessageMixin
+from django.views.generic import CreateView, UpdateView, DeleteView
+from django.views.generic.list import ListView
+from django.utils.translation import gettext_lazy as _
 from django.urls import reverse_lazy
-from task_manager.mixins import CustomLoginRequiredMixin
-from .mixins import CustomAccessMixin
-from task_manager.tasks.models import TaskModel
+from .forms import CreateUserForm
+from task_manager.mixins import NoAuthMixin, NoPermissionMixin
 
 
-class UsersView(ListView):
+MESS_PERMISSION = _("You do not have permission to modify another user.")
+
+
+class IndexIndex(ListView):
+    model = get_user_model()
     template_name = 'users/users.html'
-    model = User
     context_object_name = 'users'
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['messages'] = messages.get_messages(self.request)
+        return context
 
-class UserFormCreateView(CreateView):
+
+class CreateUser(SuccessMessageMixin, CreateView):
+    form_class = CreateUserForm
     template_name = 'users/create.html'
-    form_class = CustomUserCreationForm
     success_url = reverse_lazy('login')
-
-    def form_valid(self, form):
-        form.save()
-        messages.success(self.request, _(
-            "Your profile has been successfully created!"
-            ))
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, _("Please refill the form!"))
-        return super().form_invalid(form)
+    success_message = _('You have successfully registered')
 
 
-class UserFormUpdateView(CustomLoginRequiredMixin,
-                         CustomAccessMixin, UpdateView):
-
-    model = User
+class UpdateUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
+                 UpdateView):
+    form_class = CreateUserForm
     template_name = 'users/update.html'
-    form_class = CustomUserUpdateForm
-    success_url = reverse_lazy('users')
+    success_url = reverse_lazy('index_users')
+    success_message = _('User successfully changed')
+
+    def get(self, request: HttpRequest,
+            *args: str, **kwargs: Any) -> HttpResponse:
+        user_id = self.get_object().id
+        url_id = kwargs.get('id')
+        if url_id != user_id:
+            messages.add_message(self.request, messages.ERROR,
+                                 MESS_PERMISSION)
+            return redirect(reverse_lazy('index_users'))
+
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self, *args, **kwargs):
+        user = self.request.user
+        return user
 
     def form_valid(self, form):
-        messages.success(self.request, _("User successfully changed"))
+        password = form.cleaned_data.get('password1')
+        if password:
+            self.object.set_password(password)
         return super().form_valid(form)
 
 
-class UserFormDeleteView(CustomLoginRequiredMixin,
-                         CustomAccessMixin, DeleteView):
-
-    model = User
+class DeleteUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
+                 DeleteView):
     template_name = 'users/delete.html'
-    success_url = reverse_lazy('users')
+    success_url = reverse_lazy('index_users')
+    success_message = _('User deleted successfully')
 
-    def form_valid(self, form):
-        user = self.object
-        task_autor = TaskModel.objects.filter(author_id=user.id)
-        task_executor = TaskModel.objects.filter(executor_id=user.id)
-        if task_autor or task_executor:
-            messages.warning(
-                self.request, _('Cannot delete user because it is in use')
+    def get(self, request: HttpRequest,
+            *args: str, **kwargs: Any) -> HttpResponse:
+        user_id = self.get_object().id
+        url_id = kwargs.get('id')
+        if url_id != user_id:
+            messages.add_message(self.request, messages.ERROR,
+                                 MESS_PERMISSION)
+            return redirect(reverse_lazy('index_users'))
+
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self, *args, **kwargs):
+        user = self.request.user
+        return user
+
+    def post(self,
+             request: HttpRequest,
+             *args: str,
+             **kwargs: Any) -> HttpResponse:
+        try:
+            return super().post(request, *args, **kwargs)
+        except ProtectedError:
+            messages.add_message(
+                request, messages.ERROR,
+                _("The user cannot be deleted because it is in use.")
             )
-            return redirect('users')
-
-        messages.success(self.request, _('User deleted successfully'))
-        return super().form_valid(form)
+            return redirect(reverse_lazy('index_users'))

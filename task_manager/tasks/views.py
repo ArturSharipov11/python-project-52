@@ -1,70 +1,71 @@
-from django.views import generic
+from django.forms.forms import BaseForm
 from django.contrib import messages
-from django.contrib.auth.models import User
+from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.views.generic import CreateView, UpdateView, DeleteView
+from django.views.generic.detail import DetailView
 from django.urls import reverse_lazy
-from django.utils.translation import gettext as _
-
-from task_manager.statuses.models import StatusModel
-from task_manager.mixins import CustomLoginRequiredMixin
-from .models import TaskModel
-from .forms import TaskModelForm
-from .mixins import CustomAccessMixin
-from .filters import TaskFilter
+from django.utils.translation import gettext_lazy as _
+from django_filters.views import FilterView
+from .models import Task
+from .forms import TaskForm
+from .filters import TasksFilter
+from task_manager.mixins import NoAuthMixin, NoPermissionMixin
 
 
-class SpecificTaskView(generic.DetailView):
-    model = TaskModel
-    template_name = 'tasks/view_task.html'
-    context_object_name = 'task'
+class IsAuthorTask(UserPassesTestMixin):
+    index_url = reverse_lazy('index_tasks')
+    error_message = _('Only its author can delete a task')
+
+    def test_func(self) -> bool | None:
+        task = self.get_object()
+        return self.request.user == task.author
 
 
-class TasksView(CustomLoginRequiredMixin, generic.ListView):
+class IndexTasks(NoPermissionMixin, NoAuthMixin, FilterView):
+    model = Task
     template_name = 'tasks/tasks.html'
-    model = TaskModel
-    context_object_name = 'tasks'
+    filterset_class = TasksFilter
 
-    def get_queryset(self):
-        tasks = TaskModel.objects.all()
-        tasks_filtered = TaskFilter(
-            self.request.GET, queryset=tasks, request=self.request
-        )
-        return tasks_filtered
-
-    def get_context_data(self, *, object_list=None, **kwargs):
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['statuses'] = StatusModel.objects.all()
-        context['executors'] = User.objects.all()
-        context['filter'] = self.get_queryset()
+        context['messages'] = messages.get_messages(self.request)
+
         return context
 
 
-class CreateTaskView(CustomLoginRequiredMixin, generic.CreateView):
+class CreateTask(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
+                 CreateView):
+    model = Task
+    form_class = TaskForm
     template_name = 'tasks/create.html'
-    form_class = TaskModelForm
+    success_url = reverse_lazy('index_tasks')
+    success_message = _('Task successfully created')
 
-    def form_valid(self, form):
+    def form_valid(self, form: BaseForm):
         form.instance.author = self.request.user
-        messages.success(
-            self.request, _('Task has been successfully created')
-        )
+
         return super().form_valid(form)
 
 
-class UpdateTaskView(CustomLoginRequiredMixin, generic.UpdateView):
-    model = TaskModel
+class UpdateTask(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
+                 UpdateView):
+    model = Task
+    form_class = TaskForm
     template_name = 'tasks/update.html'
-    form_class = TaskModelForm
-
-    def form_valid(self, form):
-        messages.success(self.request, _('Task successfully changed'))
-        return super().form_valid(form)
+    success_url = reverse_lazy('index_tasks')
+    success_message = _('Task successfully changed')
 
 
-class DeleteTaskView(CustomAccessMixin, generic.DeleteView):
-    model = TaskModel
+class DeleteTask(NoPermissionMixin, NoAuthMixin, IsAuthorTask,
+                 SuccessMessageMixin, DeleteView):
+    model = Task
     template_name = 'tasks/delete.html'
-    success_url = reverse_lazy('tasks')
+    success_url = reverse_lazy('index_tasks')
+    success_message = _('Task deleted successfully')
 
-    def form_valid(self, form):
-        messages.success(self.request, _('Task deleted successfully!'))
-        return super().form_valid(form)
+
+class ShowTask(NoPermissionMixin, NoAuthMixin, DetailView):
+    model = Task
+    template_name = 'tasks/view_task.html'
+    context_object_name = 'task'

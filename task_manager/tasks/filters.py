@@ -1,36 +1,30 @@
-import django_filters
 from django.utils.translation import gettext_lazy as _
+from django_filters import FilterSet
+from django_filters import ChoiceFilter, BooleanFilter
 from django import forms
-from task_manager.labels.models import LabelModel
-from .models import TaskModel
-from task_manager.statuses.models import StatusModel
-from task_manager.users.models import Person
+from .models import Task
+from ..labels.models import Label
 
 
-class TaskFilter(django_filters.FilterSet):
-    status = django_filters.ModelChoiceFilter(
-        label=_('Status'),
-        queryset=StatusModel.objects.all(),
-    )
-    executor = django_filters.ModelChoiceFilter(
-        label=_('Executor'),
-        queryset=Person.objects.all()
-    )
-    labels = django_filters.ModelChoiceFilter(
+class TasksFilter(FilterSet):
+    label = ChoiceFilter(
+        choices=lambda: [(label.id, label.name)
+                         for label
+                         in Label.objects.all()],
+        field_name='labels',
         label=_('Label'),
-        queryset=LabelModel.objects.all()
     )
-    author = django_filters.BooleanFilter(
-        label=_('Only my tasks'),
-        method='filter_author',
-        widget=forms.CheckboxInput(),
-    )
+    self_tasks = BooleanFilter(widget=forms.CheckboxInput,
+                               method='filter_author',
+                               label=_('Only your tasks'))
+
+    def filter_author(self, queryset, *args, **kwargs):
+        author = args[-1]
+        if author:
+            author = getattr(self.request, 'user', None)
+            return queryset.filter(author=author)
+        return queryset
 
     class Meta:
-        model = TaskModel
-        fields = ['status', 'executor']
-
-    def filter_author(self, queryset, name, value):
-        if value:
-            return queryset.filter(**{'author__id': self.request.user.id})
-        return queryset
+        model = Task
+        fields = ['status', 'executor', 'label', 'self_tasks']

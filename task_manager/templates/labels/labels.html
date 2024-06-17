@@ -1,42 +1,38 @@
-{% load i18n django_bootstrap5 %}
+{% extends "base.html" %}
 {% load i18n %}
 
-{% include 'header.html' %}
 
+{% block main %}
+  <main>
+    <h1 class="my-4">{% translate "Labels" %}</h1>
 
-<html lang="en">
-<body class="d-flex flex-column min-vh-100">
-    <div class="container wrapper flex-grow-1">
-        {% include 'messages.html' %}
-        <h1 class="my-4">{% translate 'Labels' %}</h1>
-          <a class="btn btn-outline-secondary mb-3" href="{% url 'create_label' %}">{% translate 'Create label' %}</a>
-            <table class="table table-striped">
-              <thead>
-              <tr>
-                <th class="text-dark">ID</th>
-                <th class="text-dark">{% translate 'Name' %}</th>
-                <th class="text-dark">{% translate 'Date of creation' %}</th>
-                <th class="text-dark"></th>
-              </tr>
-              </thead>
+    <a class="btn btn-primary mb-3" href="{% url 'create_label' %}">{% translate "Create label" %}</a>
 
-              {% for label in labels %}
-                <tbody>
-                <tr>
-                  <td class="text-dark">{{ label.id }}</td>
-                  <td class="text-dark">{{ label.name }}</td>
-                  <td class="text-dark">{{ label.created_at }}</td>
-                  <td class="text-dark">
-                    <a class="" href="{% url 'update_label' label.id %}">{% translate 'Update' %}</a>
-                    <br>
-                    <a class="" href="{% url 'delete_label' label.id %}">{% translate 'Delete' %}</a>
-                  </td>
-                </tr>
-                </tbody>
-              {% endfor %}
-            </table>
-    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>{% translate "Name" %}</th>
+          <th>{% translate "Create date" %}</th>
+          <th></th>
+        </tr>
+      </thead>
 
-{% include 'footer.html' %}
-</body>
-</html>
+      {% for label in labels %}
+      <tbody>
+          <tr>
+            <td>{{ label.id }}</td>
+            <td>{{ label.name }}</td>
+            <td>{{ label.timestamp }}</td>
+            <td>
+              <a href="{% url 'update_label' label.id %}">{% translate "Change" %}</a>
+              <br>
+              <a href="{% url 'delete_label' label.id %}">{% translate "Delete" %}</a>
+            </td>
+          </tr>
+      </tbody>
+      {% endfor %}
+    </table>
+
+  </main>
+{% endblock %}

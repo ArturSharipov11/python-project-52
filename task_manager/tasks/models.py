@@ -1,60 +1,30 @@
 from django.db import models
-from django.urls import reverse
-from django.utils import timezone
+from django.contrib.auth import get_user_model
+from ..statuses.models import Status
+from ..labels.models import Label
 from django.utils.translation import gettext_lazy as _
-from task_manager.labels.models import LabelModel
-from task_manager.statuses.models import StatusModel
-from task_manager.users.models import Person
 
 
-class TaskModel(models.Model):
-    name = models.CharField(
-        max_length=255,
-        unique=True,
-        error_messages={
-            "unique": _("Task with such Name already exist."),
-        },
-        verbose_name=_('Name'),
-        help_text=_('Obligatory field.')
-    )
-    description = models.TextField(
-        max_length=1000,
-        verbose_name=_('Description'),
-        null=True,
-        blank=True,
-        help_text=_('Describe the task.')
-    )
-    status = models.ForeignKey(
-        StatusModel,
-        on_delete=models.PROTECT,
-        verbose_name=_('Status'),
-        help_text=_('Obligatory field. Select one of the task statuses.')
-    )
-    executor = models.ForeignKey(
-        Person,
-        on_delete=models.PROTECT,
-        verbose_name=_('Executor'),
-        related_name='executor',
-        null=True,
-        blank=True,
-        help_text=_('Select the task executor.'),
-    )
-    author = models.ForeignKey(
-        Person,
-        on_delete=models.PROTECT,
-        verbose_name=_('Author'),
-        related_name='author'
-    )
-    labels = models.ManyToManyField(
-        LabelModel,
-        blank=True,
-        verbose_name=_('Labels'),
-        help_text=_('Select one or more tags.')
-    )
-    created_at = models.DateTimeField(default=timezone.now)
+class Task(models.Model):
+    name = models.CharField(max_length=200, unique=True, verbose_name=_('Name'))
+    description = models.TextField(blank=True, verbose_name=_('Description'))
+    status = models.ForeignKey(Status,
+                               on_delete=models.PROTECT,
+                               verbose_name=_('Status'))
+    author = models.ForeignKey(get_user_model(),
+                               on_delete=models.PROTECT,
+                               related_name='tasks_author',
+                               verbose_name=_('Author'))
+    executor = models.ForeignKey(get_user_model(),
+                                 on_delete=models.PROTECT,
+                                 blank=True, null=True,
+                                 related_name='tasks_executor',
+                                 verbose_name=_('Executor'))
+    labels = models.ManyToManyField(Label, blank=True,
+                                    related_name='labels',
+                                    verbose_name=_('Labels'))
+    timestamp = models.DateTimeField(auto_now_add=True,
+                                     verbose_name=_('Date of creation'))
 
-    def get_absolute_url(self):
-        return reverse('tasks')
-
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name

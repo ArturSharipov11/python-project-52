@@ -1,22 +1,19 @@
+{% extends "base.html" %}
+
+{% load django_bootstrap5 %}
 {% load i18n %}
 
-{% include 'header.html' %}
 
+{% block main %}
+  <main>
+    <h1 class="my-4"> {% translate "Deleting a status" %} </h1>
+    <form method="post">
+      {% csrf_token %}
 
-<html lang="en">
-    <body class="d-flex flex-column min-vh-100">
-        <div class="container wrapper flex-grow-1">
-            {% include 'messages.html' %}
-            <h1 class="my-4">{% translate 'Deleting a status' %}</h1>
+      <p>{% translate 'Are you sure you want to remove' %} {{ object.name }}?</p>
 
-            <p>{% translate 'Are you sure you want to delete the status' %} {{ object.name }}?</p>
-
-            <form action="{% url 'delete_status' object.id %}" method="post">
-              {% csrf_token %}
-              <input class="btn btn-danger" type="submit" value="{% translate 'Yes, delete' %}">
-            </form>
-        </div>
-    </body>
-
-{% include 'footer.html' %}
-</html>
+      {% translate "Yes, delete" as button_text %}
+      {% bootstrap_button class="btn btn-danger" button_type="submit" content=button_text %}
+    </form>
+  </main>
+{% endblock %}

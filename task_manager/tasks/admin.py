@@ -1,25 +1,15 @@
 from django.contrib import admin
-from django.contrib.admin import DateFieldListFilter
+from django.contrib.admin import DateFieldListFilter, RelatedFieldListFilter
+from .models import Task
 
-from .models import TaskModel
 
-
-@admin.register(TaskModel)
-class TaskAdmin(admin.ModelAdmin):
-    list_display = (
-        'name',
-        'description',
-        'status',
-        'executor',
-        'author',
-        'created_at'
-    )
-    search_fields = [
-        'name',
-        'description',
-        'status',
-        'executor',
-        'author',
-        'created_at',
-    ]
-    list_filter = (('created_at', DateFieldListFilter),)
+@admin.register(Task)
+class TasksAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'status', 'author', 'executor', 'timestamp')
+    search_fields = ['name']
+    list_filter = (('timestamp', DateFieldListFilter),
+                   ('status', RelatedFieldListFilter),
+                   ('author', RelatedFieldListFilter),
+                   ('executor', RelatedFieldListFilter),
+                   ('labels', RelatedFieldListFilter),
+                   )

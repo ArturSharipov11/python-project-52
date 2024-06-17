@@ -1,10 +1,8 @@
-from django import forms
+from django.forms import ModelForm
+from .models import Label
 
-from .models import LabelModel
 
-
-class LabelModelForm(forms.ModelForm):
-
+class LabelForm(ModelForm):
     class Meta:
-        model = LabelModel
-        fields = ['name']
+        model = Label
+        fields = ('name', )

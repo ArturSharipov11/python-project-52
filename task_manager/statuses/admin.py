@@ -1,12 +1,10 @@
 from django.contrib import admin
 from django.contrib.admin import DateFieldListFilter
+from .models import Status
 
-from .models import StatusModel
 
-
-@admin.register(StatusModel)
+@admin.register(Status)
 class StatusAdmin(admin.ModelAdmin):
-    list_display = ('name',
-                    'created_at')
-    search_fields = ['name', 'created_at']
-    list_filter = (('created_at', DateFieldListFilter),)
+    list_display = ('id', 'name', 'timestamp')
+    search_fields = ['name']
+    list_filter = (('timestamp', DateFieldListFilter),)

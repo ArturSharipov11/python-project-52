@@ -1,36 +1,33 @@
-from django.views.generic.base import TemplateView
-from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import reverse_lazy
-from django.contrib.auth.forms import AuthenticationForm
-from django.utils.translation import gettext as _
+from django.shortcuts import render
+from django.views import View
+from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.messages.views import SuccessMessageMixin
+from .forms import LoginUserForm
 
 
-class MainIndexView(TemplateView):
-    template_name = "index.html"
+class IndexView(View):
+    def get(self, request, *args, **kwargs):
+        messages_ = messages.get_messages(request)
 
-
-class LoginUserFormView(SuccessMessageMixin, LoginView):
-    template_name = "login.html"
-    next_page = reverse_lazy("main_index")
-    form_class = AuthenticationForm
-    success_message = _("You are logged in")
-
-    def form_invalid(self, form):
-        messages.error(
-            self.request,
-            _(
-                "Please enter the correct username and password. "
-                "Both fields can be case sensitive."
-            ),
+        return render(
+            request,
+            'index.html',
+            context={
+                'messages': messages_
+            }
         )
-        return self.render_to_response(self.get_context_data(form=form))
 
 
-class LogoutUserView(SuccessMessageMixin, LogoutView):
-    next_page = reverse_lazy("main_index")
+class LoginUser(SuccessMessageMixin, LoginView):
+    form_class = LoginUserForm
+    template_name = 'login.html'
+    success_message = _('You are logged in')
 
+
+class LogoutUser(LogoutView):
     def dispatch(self, request, *args, **kwargs):
-        messages.info(request, _("You are logged out"))
+        if request.user.is_authenticated:
+            messages.info(request, _("You are logged out."))
         return super().dispatch(request, *args, **kwargs)

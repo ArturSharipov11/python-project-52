@@ -1,46 +1,61 @@
+from typing import Any
+from django.views.generic import CreateView, UpdateView, DeleteView
+from django.views.generic.list import ListView
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.messages.views import SuccessMessageMixin
+from .models import Label
+from .forms import LabelForm
 from django.urls import reverse_lazy
-from django.utils.translation import gettext as _
-from django.views.generic import CreateView, UpdateView, DeleteView, ListView
-
-from .models import LabelModel
-from .forms import LabelModelForm
-from task_manager.mixins import CustomLoginRequiredMixin, CheckDependencyMixin
+from django.utils.translation import gettext_lazy as _
+from task_manager.mixins import NoAuthMixin, NoPermissionMixin
 
 
-class LabelsView(CustomLoginRequiredMixin, ListView):
+class UseInTask(UserPassesTestMixin):
+    index_url = reverse_lazy('index_labels')
+    error_message = _("The label cannot be deleted because it is in use.")
+
+    def test_func(self) -> bool | None:
+
+        if self.request.method == 'POST':
+            label = self.get_object()
+            tasks = label.labels.all()
+
+            return not tasks
+        return True
+
+
+class IndexLabels(NoPermissionMixin, NoAuthMixin, ListView):
+    model = Label
     template_name = 'labels/labels.html'
-    model = LabelModel
     context_object_name = 'labels'
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['messages'] = messages.get_messages(self.request)
+        return context
 
-class CreateLabel(CustomLoginRequiredMixin, CreateView):
+
+class CreateLabel(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
+                  CreateView):
+    form_class = LabelForm
     template_name = 'labels/create.html'
-    form_class = LabelModelForm
-
-    def form_valid(self, form):
-        messages.success(
-            self.request, _('Label successfully created')
-        )
-        return super().form_valid(form)
+    success_url = reverse_lazy('index_labels')
+    success_message = _('Label successfully created')
 
 
-class UpdateLabel(CustomLoginRequiredMixin, UpdateView):
-    model = LabelModel
-    form_class = LabelModelForm
+class UpdateLabel(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
+                  UpdateView):
+    model = Label
+    form_class = LabelForm
     template_name = 'labels/update.html'
-
-    def form_valid(self, form):
-        messages.success(
-            self.request, _('Label successfully changed')
-        )
-        return super().form_valid(form)
+    success_url = reverse_lazy('index_labels')
+    success_message = _('Label successfully changed')
 
 
-class DeleteLabel(CustomLoginRequiredMixin, CheckDependencyMixin, DeleteView):
-    model = LabelModel
+class DeleteLabel(NoPermissionMixin, NoAuthMixin, UseInTask,
+                  SuccessMessageMixin, DeleteView):
+    model = Label
     template_name = 'labels/delete.html'
-    success_url = reverse_lazy('labels')
-    msg_success = 'Label deleted successfully!'
-    msg_error = 'Cannot remove label because it is in use'
-    url_redirect = 'labels'
+    success_url = reverse_lazy('index_labels')
+    success_message = _('Label deleted successfully')

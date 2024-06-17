@@ -1,28 +1,19 @@
+{% extends "base.html" %}
+
+{% load django_bootstrap5 %}
 {% load i18n %}
 
-{% include 'header.html' %}
 
+{% block main %}
+  <main>
+    <h1 class="my-4"> {% translate "Change of status" %} </h1>
+    <form method="post">
+      {% csrf_token %}
 
-<html lang="en">
-    <body class="d-flex flex-column min-vh-100">
-        <div class="container wrapper flex-grow-1">
-            {% include 'messages.html' %}
-            <h1 class="my-4">{% translate 'Update status' %}</h1>
-            <form action="{% url 'update_status' object.id %}" method="post">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label" for='id_name'>{% translate 'Name' %}</label>
-                    <input type="text" name="name"  value="{{ object.name }}" maxlength="100" class="form-control" placeholder="{% translate 'Name' %}" required id="id_name">
-                </div>
-                <input class="btn btn-primary" type="submit" value="{% translate 'Update' %}">
-            </form>
-        </div>
-{% if form.errors%}
-    {% for error in form.errors %}
-        <p>{{ error|escape }}</p>
-    {% endfor %}
-{% endif %}
-    </body>
+      {% bootstrap_form form %}
 
-{% include 'footer.html' %}
-</html>
+      {% translate "Change" as button_text %}
+      {% bootstrap_button button_type="submit" content=button_text %}
+    </form>
+  </main>
+{% endblock %}

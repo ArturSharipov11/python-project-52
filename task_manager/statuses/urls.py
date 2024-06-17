@@ -3,7 +3,7 @@ from task_manager.statuses import views
 
 
 urlpatterns = [
-    path('', views.StatusesView.as_view(), name='statuses'),
+    path('', views.IndexStatuses.as_view(), name='statuses'),
     path('create/', views.CreateStatus.as_view(), name='create_status'),
     path('<int:pk>/update/', views.UpdateStatus.as_view(),
          name='update_status'),
