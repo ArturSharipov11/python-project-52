@@ -29,7 +29,7 @@ msgstr "Имя"
 
 #: task_manager/labels/views.py:16
 msgid "The label cannot be deleted because it is in use."
-msgstr ""
+msgstr "Метку невозможно удалить поскольку она используется"
 
 #: task_manager/labels/views.py:44
 msgid "Label successfully created"
@@ -238,7 +238,7 @@ msgstr "Изменение метки"
 
 #: task_manager/templates/login.html:8 task_manager/templates/login.html:14
 msgid "LogIn"
-msgstr "Вход"
+msgstr "Войти"
 
 #: task_manager/templates/statuses/create.html:9
 #: task_manager/templates/statuses/statuses.html:9
@@ -280,7 +280,7 @@ msgstr "Авторизация пользователя"
 
 #: task_manager/templates/users/create.html:15
 msgid "Register"
-msgstr "Регистр"
+msgstr "Зарегистрировать"
 
 #: task_manager/templates/users/delete.html:9
 msgid "Deleting a user"
