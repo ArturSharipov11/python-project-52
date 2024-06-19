@@ -68,4 +68,4 @@ class DeleteTask(NoPermissionMixin, NoAuthMixin, IsAuthorTask,
 class ShowTask(NoPermissionMixin, NoAuthMixin, DetailView):
     model = Task
     template_name = 'tasks/view_task.html'
-    context_object_name = 'tasks'
+    context_object_name = 'task'
