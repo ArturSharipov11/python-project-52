@@ -83,7 +83,7 @@ ROOT_URLCONF = 'task_manager.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'task_manager' / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -131,17 +131,17 @@ LANGUAGES = [
     ('ru-ru', _('Russian'))
 ]
 
-LANGUAGE_CODE = 'ru-ru'
+LANGUAGE_CODE = 'ru'
 
-# LOCALE_PATHS = [
-#     BASE_DIR / 'task_manager' / 'locale',
-# ]
+LOCALE_PATHS = [
+    '/locale',
+]
 
 # TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-# USE_TZ = True
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
