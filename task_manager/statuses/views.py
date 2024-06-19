@@ -2,7 +2,6 @@ from typing import Any
 from django.http import HttpRequest, HttpResponse
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import redirect
-
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.contrib import messages
@@ -29,7 +28,7 @@ class CreateStatus(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                    CreateView):
     form_class = StatusForm
     template_name = 'statuses/create.html'
-    success_url = reverse_lazy('index_statuses')
+    success_url = reverse_lazy('statuses')
     success_message = _('Status successfully created')
 
 
@@ -38,7 +37,7 @@ class UpdateStatus(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
     model = Status
     form_class = StatusForm
     template_name = 'statuses/update.html'
-    success_url = reverse_lazy('index_statuses')
+    success_url = reverse_lazy('statuses')
     success_message = _('Status successfully changed')
 
 
@@ -46,7 +45,7 @@ class DeleteStatus(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                    DeleteView):
     model = Status
     template_name = 'statuses/delete.html'
-    success_url = reverse_lazy('index_statuses')
+    success_url = reverse_lazy('statuses')
     success_message = _('Status deleted successfully')
     error_del_message = _("The status cannot be deleted because it is in use.")
 
@@ -59,4 +58,4 @@ class DeleteStatus(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
         except ProtectedError:
             messages.add_message(request, messages.ERROR,
                                  self.error_del_message)
-            return redirect(reverse_lazy('index_statuses'))
+            return redirect(reverse_lazy('statuses'))
