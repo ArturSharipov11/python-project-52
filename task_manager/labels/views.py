@@ -12,7 +12,7 @@ from task_manager.mixins import NoAuthMixin, NoPermissionMixin
 
 
 class UseInTask(UserPassesTestMixin):
-    index_url = reverse_lazy('index_labels')
+    index_url = reverse_lazy('labels')
     error_message = _("The label cannot be deleted because it is in use.")
 
     def test_func(self) -> bool | None:
@@ -40,7 +40,7 @@ class CreateLabel(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                   CreateView):
     form_class = LabelForm
     template_name = 'labels/create.html'
-    success_url = reverse_lazy('index_labels')
+    success_url = reverse_lazy('labels')
     success_message = _('Label successfully created')
 
 
@@ -49,7 +49,7 @@ class UpdateLabel(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
     model = Label
     form_class = LabelForm
     template_name = 'labels/update.html'
-    success_url = reverse_lazy('index_labels')
+    success_url = reverse_lazy('labels')
     success_message = _('Label successfully changed')
 
 
@@ -57,5 +57,5 @@ class DeleteLabel(NoPermissionMixin, NoAuthMixin, UseInTask,
                   SuccessMessageMixin, DeleteView):
     model = Label
     template_name = 'labels/delete.html'
-    success_url = reverse_lazy('index_labels')
+    success_url = reverse_lazy('labels')
     success_message = _('Label deleted successfully')
