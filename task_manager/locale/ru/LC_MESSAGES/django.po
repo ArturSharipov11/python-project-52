@@ -122,11 +122,11 @@ msgstr "Задача успешно создана"
 
 #: task_manager/tasks/views.py:57
 msgid "Task successfully changed"
-msgstr ""
+msgstr "Задача успешно изменена"
 
 #: task_manager/tasks/views.py:65
 msgid "Task deleted successfully"
-msgstr "Задача успешно изменена"
+msgstr "Задача успешно удалена"
 
 #: task_manager/templates/footer.html:6
 msgid "ArturSharipov11"
@@ -161,7 +161,7 @@ msgstr "Вход"
 
 #: task_manager/templates/header.html:49
 msgid "Sign up"
-msgstr "Зарегистрироваться"
+msgstr "Регистрация"
 
 #: task_manager/templates/index.html:9
 msgid "Hello from Hexlet!"
@@ -280,7 +280,7 @@ msgstr "Авторизация пользователя"
 
 #: task_manager/templates/users/create.html:15
 msgid "Register"
-msgstr "Регистрация"
+msgstr "Регистр"
 
 #: task_manager/templates/users/delete.html:9
 msgid "Deleting a user"
