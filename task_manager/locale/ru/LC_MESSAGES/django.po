@@ -315,7 +315,7 @@ msgstr "У вас нет разрешения на изменение друго
 
 #: task_manager/users/views.py:34
 msgid "You have successfully registered"
-msgstr "Вы успешно зарегистрировались"
+msgstr "Пользователь успешно зарегистрирован"
 
 #: task_manager/users/views.py:42
 msgid "User successfully changed"
