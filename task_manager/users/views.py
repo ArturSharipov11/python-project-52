@@ -38,7 +38,7 @@ class UpdateUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                  UpdateView):
     form_class = CreateUserForm
     template_name = 'users/update.html'
-    success_url = reverse_lazy('index_users')
+    success_url = reverse_lazy('users')
     success_message = _('User successfully changed')
 
     def get(self, request: HttpRequest,
@@ -48,7 +48,7 @@ class UpdateUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
         if url_id != user_id:
             messages.add_message(self.request, messages.ERROR,
                                  MESS_PERMISSION)
-            return redirect(reverse_lazy('index_users'))
+            return redirect(reverse_lazy('users'))
 
         return super().get(request, *args, **kwargs)
 
@@ -66,7 +66,7 @@ class UpdateUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
 class DeleteUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                  DeleteView):
     template_name = 'users/delete.html'
-    success_url = reverse_lazy('index_users')
+    success_url = reverse_lazy('users')
     success_message = _('User deleted successfully')
 
     def get(self, request: HttpRequest,
@@ -76,7 +76,7 @@ class DeleteUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
         if url_id != user_id:
             messages.add_message(self.request, messages.ERROR,
                                  MESS_PERMISSION)
-            return redirect(reverse_lazy('index_users'))
+            return redirect(reverse_lazy('users'))
 
         return super().get(request, *args, **kwargs)
 
@@ -95,4 +95,4 @@ class DeleteUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                 request, messages.ERROR,
                 _("The user cannot be deleted because it is in use.")
             )
-            return redirect(reverse_lazy('index_users'))
+            return redirect(reverse_lazy('users'))
