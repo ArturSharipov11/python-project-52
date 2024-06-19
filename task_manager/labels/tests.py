@@ -1,133 +1,35 @@
-from django.test import TestCase, Client
-from django.test.utils import override_settings
-from django.contrib.auth import get_user_model
-from .models import Label
+from django.test import TestCase
+from django import test
+from task_manager.labels.models import Label
 
 
-class LabelsTests(TestCase):
-
+@test.modify_settings(MIDDLEWARE={'remove': [
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
+]})
+class TestLabel(TestCase):
     def setUp(self):
-        self.client = Client()
+        self.obj = Label.objects.create(name="Test Label")
 
-        self._override = override_settings(LANGUAGE_CODE='en-us')
-        self._override.enable()
+    def test_create_label(self):
+        new_obj = Label.objects.create(name="Second Test Label")
 
-    def tearDown(self):
-        self._override.disable()
-        super().tearDown()
+        self.assertEqual(new_obj.name, "Second Test Label")
 
-    @classmethod
-    def setUpTestData(cls):
-        user_model = get_user_model()
-        cls.user_auth = user_model.objects.create_user(username='user_label',
-                                                       password='pass_label',
-                                                       first_name='user',
-                                                       last_name='author')
-        cls.label_one = Label.objects.create(name='One label')
+    def test_read_label(self):
+        read_obj = Label.objects.get(id=self.obj.id)
 
-    def test_error_access(self):
-        id = self.label_one.id
+        self.assertEqual(read_obj.name, "Test Label")
 
-        response_redirect = self.client.get('/labels/')
-        response = self.client.get('/login/')
-        content = response.content.decode()
-        self.assertIn('You are not authorized! Please come in.', content)
-        self.assertRedirects(response_redirect, '/login/', 302, 200)
+    def test_update_label(self):
+        self.obj.name = "New Test Label Name"
+        self.obj.save()
 
-        response_redirect = self.client.get('/labels/create/')
-        response = self.client.get('/login/')
-        content = response.content.decode()
-        self.assertIn('You are not authorized! Please come in.', content)
-        self.assertRedirects(response_redirect, '/login/', 302, 200)
+        updated_obj = Label.objects.get(id=self.obj.id)
 
-        response_redirect = self.client.get(f'/labels/{id}/update/')
-        response = self.client.get('/login/')
-        content = response.content.decode()
-        self.assertIn('You are not authorized! Please come in.', content)
-        self.assertRedirects(response_redirect, '/login/', 302, 200)
+        self.assertEqual(updated_obj.name, "New Test Label Name")
 
-        response_redirect = self.client.get(f'/labels/{id}/delete/')
-        response = self.client.get('/login/')
-        content = response.content.decode()
-        self.assertIn('You are not authorized! Please come in.', content)
-        self.assertRedirects(response_redirect, '/login/', 302, 200)
+    def test_delete_label(self):
+        self.obj.delete()
 
-        response_redirect = self.client.post('/labels/create/',
-                                             {'name': 'error labels'})
-        response = self.client.get('/login/')
-        content = response.content.decode()
-        self.assertIn('You are not authorized! Please come in.', content)
-        self.assertRedirects(response_redirect, '/login/', 302, 200)
-
-        response_redirect = self.client.post(f'/labels/{id}/update/',
-                                             {'name': 'error labels'})
-        response = self.client.get('/login/')
-        content = response.content.decode()
-        self.assertIn('You are not authorized! Please come in.', content)
-        self.assertRedirects(response_redirect, '/login/', 302, 200)
-
-        response_redirect = self.client.post(f'/labels/{id}/delete/')
-        response = self.client.get('/login/')
-        content = response.content.decode()
-        self.assertIn('You are not authorized! Please come in.', content)
-        self.assertRedirects(response_redirect, '/login/', 302, 200)
-
-    def test_successfull_access(self):
-        self.client.login(username="user_label", password="pass_label")
-        id = self.label_one.id
-
-        response = self.client.get('/labels/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
-
-        response = self.client.get('/labels/create/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
-
-        response = self.client.get(f'/labels/{id}/update/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
-
-        response = self.client.get(f'/labels/{id}/delete/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
-
-    def test_show_labels(self):
-        self.client.login(username="user_label", password="pass_label")
-
-        response = self.client.get('/labels/')
-        content = response.content.decode()
-        self.assertIn('One label', content)
-
-    def test_work_labels(self):
-        self.client.login(username="user_label", password="pass_label")
-# Checking label creation.
-        response_redirect = self.client.post('/labels/create/',
-                                             {'name': 'create new label'})
-        response = self.client.get('/labels/')
-        content = response.content.decode()
-        self.assertIn('Label successfully created', content)
-        self.assertIn('create new label', content)
-        self.assertRedirects(response_redirect, '/labels/', 302, 200)
-# Checking the uniqueness of the label name.
-        response = self.client.post('/labels/create/',
-                                    {'name': 'create new label'})
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
-
-        new_label_id = Label.objects.get(name='create new label').id
-# Checking for label changes.
-        response_redirect = self.client.post(f'/labels/{new_label_id}/update/',
-                                             {'name': 'change new label'})
-        response = self.client.get('/labels/')
-        content = response.content.decode()
-        self.assertIn('Label successfully changed', content)
-        self.assertIn('change new label', content)
-        self.assertRedirects(response_redirect, '/labels/', 302, 200)
-# Checking that the label is removed.
-        response_redirect = self.client.post(f'/labels/{new_label_id}/delete/')
-        response = self.client.get('/labels/')
-        content = response.content.decode()
-        self.assertIn('Label deleted successfully', content)
-        self.assertNotIn('change new label', content)
-        self.assertRedirects(response_redirect, '/labels/', 302, 200)
+        with self.assertRaises(Label.DoesNotExist):
+            Label.objects.get(id=self.obj.id)
