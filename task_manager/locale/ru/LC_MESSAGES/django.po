@@ -280,7 +280,7 @@ msgstr "Авторизация пользователя"
 
 #: task_manager/templates/users/create.html:15
 msgid "Register"
-msgstr "регистр"
+msgstr "Регистрация"
 
 #: task_manager/templates/users/delete.html:9
 msgid "Deleting a user"
