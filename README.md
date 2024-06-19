@@ -4,7 +4,6 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/de3f5e5dc4ac783dfc55/maintainability)](https://codeclimate.com/github/ArturSharipov11/python-project-52/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/de3f5e5dc4ac783dfc55/test_coverage)](https://codeclimate.com/github/ArturSharipov11/python-project-52/test_coverage)
 
-
 # Task manager
 
 [**Task manager**](https://python-project-52-dpvy.onrender.com) is a project management tool. 
