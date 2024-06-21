@@ -7,7 +7,7 @@
 # Task manager
 
 [**Task manager**](https://python-project-52-dpvy.onrender.com) is a project management tool. 
-
+ 
 With its help, you can assign tasks to employees and monitor their implementation.
 
 ### Installation
