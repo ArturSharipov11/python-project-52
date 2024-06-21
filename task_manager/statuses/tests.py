@@ -1,35 +1,140 @@
-from django.test import TestCase
-from task_manager.statuses.models import Status
-from django import test
+from django.test import TestCase, Client
+from django.test.utils import override_settings
+from django.contrib.auth import get_user_model
+from .models import Status
 
 
-@test.modify_settings(MIDDLEWARE={'remove': [
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-]})
-class TestLabel(TestCase):
+def get_status_id_by_name(name: str) -> int:
+    return Status.objects.get(name=name).id
+
+
+class StatusesTests(TestCase):
+
     def setUp(self):
-        self.obj = Status.objects.create(name="Test Status")
+        self.client = Client()
 
-    def test_create_status(self):
-        new_obj = Status.objects.create(name="Another Test Status")
+        self._override = override_settings(LANGUAGE_CODE='en-us')
+        self._override.enable()
 
-        self.assertEqual(new_obj.name, "Another Test Status")
+    def tearDown(self):
+        self._override.disable()
+        super().tearDown()
 
-    def test_read_status(self):
-        read_obj = Status.objects.get(id=self.obj.id)
+    @classmethod
+    def setUpTestData(cls):
+        user_model = get_user_model()
+        cls.user = user_model.objects.create_user(username='user_status',
+                                                  password='pass_status')
 
-        self.assertEqual(read_obj.name, "Test Status")
+        cls.status1 = Status.objects.create(name='first status')
+        cls.status2 = Status.objects.create(name='second status')
 
-    def test_update_status(self):
-        self.obj.name = "New Test Status Name"
-        self.obj.save()
+    def test_error_access(self):
+        id = get_status_id_by_name('first status')
 
-        updated_obj = Status.objects.get(id=self.obj.id)
+        response_redirect = self.client.get('/statuses/')
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You are not authorized! Please come in.', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
 
-        self.assertEqual(updated_obj.name, "New Test Status Name")
+        response_redirect = self.client.get('/statuses/create/')
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You are not authorized! Please come in.', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
 
-    def test_delete_status(self):
-        self.obj.delete()
+        response_redirect = self.client.get(f'/statuses/{id}/update/')
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You are not authorized! Please come in.', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
 
-        with self.assertRaises(Status.DoesNotExist):
-            Status.objects.get(id=self.obj.id)
+        response_redirect = self.client.get(f'/statuses/{id}/delete/')
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You are not authorized! Please come in.', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
+
+        response_redirect = self.client.post('/statuses/create/',
+                                             {'name': 'test status'})
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You are not authorized! Please come in.', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
+
+        response_redirect = self.client.post(f'/statuses/{id}/update/',
+                                             {'name': 'test status'})
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You are not authorized! Please come in.', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
+
+        response_redirect = self.client.post(f'/statuses/{id}/delete/')
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You are not authorized! Please come in.', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
+
+    def test_successfull_access(self):
+        self.client.login(username="user_status", password="pass_status")
+        id = get_status_id_by_name('first status')
+
+        response = self.client.get('/statuses/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
+
+        response = self.client.get('/statuses/create/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
+
+        response = self.client.get(f'/statuses/{id}/update/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
+
+        response = self.client.get(f'/statuses/{id}/delete/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
+
+    def test_work_statuses(self):
+        self.client.login(username="user_status", password="pass_status")
+# Checking the display of statuses.
+        response = self.client.get('/statuses/')
+        content = response.content.decode()
+        self.assertIn('first status', content)
+        self.assertIn('second status', content)
+# Checking the creation of status.
+        response_redirect = self.client.post('/statuses/create/',
+                                             {'name': 'test status'})
+        response = self.client.get('/statuses/')
+        content = response.content.decode()
+        self.assertIn('Status successfully created', content)
+        self.assertIn('test status', content)
+        self.assertRedirects(response_redirect, '/statuses/', 302, 200)
+# We check the creation of a second identical status.
+        response = self.client.post('/statuses/create/',
+                                    {'name': 'test status'})
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
+        count_statuses = len(Status.objects.all())
+        self.assertEqual(count_statuses, 3)
+
+        new_status_id = get_status_id_by_name('test status')
+# Checking the status update.
+        response_redirect = self.client.post(
+            f'/statuses/{new_status_id}/update/',
+            {'name': 'test status rename'})
+        response = self.client.get('/statuses/')
+        content = response.content.decode()
+        self.assertIn('Status successfully changed', content)
+        self.assertIn('test status rename', content)
+        self.assertRedirects(response_redirect, '/statuses/', 302, 200)
+# Checking status deletion.
+        response_redirect = self.client.post(
+            f'/statuses/{new_status_id}/delete/'
+        )
+        response = self.client.get('/statuses/')
+        content = response.content.decode()
+        self.assertIn('Status deleted successfully', content)
+        self.assertNotIn('test status rename', content)
+        self.assertRedirects(response_redirect, '/statuses/', 302, 200)

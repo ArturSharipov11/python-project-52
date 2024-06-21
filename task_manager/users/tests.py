@@ -1,185 +1,125 @@
 from django.test import TestCase, Client
-from django.urls import reverse
+from django.test.utils import override_settings
 from django.contrib.auth import get_user_model
-from django import test
 
 
-@test.modify_settings(MIDDLEWARE={'remove': [
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-]})
-class TestRegistrationView(TestCase):
+class UsersTests(TestCase):
+
     def setUp(self):
         self.client = Client()
-        self.user_data = {
-            "first_name": "Test",
-            "last_name": "User",
-            "username": "TestUser",
-            "password1": "testing12",
-            "password2": "testing12",
-        }
-        self.url = reverse("create_user")
 
-    def test_registration_POST(self):
-        response = self.client.post(self.url, self.user_data)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "/login/")
+        self._override = override_settings(LANGUAGE_CODE='en-us')
+        self._override.enable()
 
-    def test_registration_GET(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
+    def tearDown(self):
+        self._override.disable()
+        super().tearDown()
 
+    @classmethod
+    def setUpTestData(cls):
+        user_model = get_user_model()
+        cls.user1 = user_model.objects.create_user(username='utest1',
+                                                   password='ptest')
+        cls.user2 = user_model.objects.create_user(username='utest2',
+                                                   password='ptest')
 
-@test.modify_settings(MIDDLEWARE={'remove': [
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-]})
-class TestLoginView(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.u = get_user_model().objects.create_user(
-            username="TestUser", password="testing12"
-        )
-        self.url = reverse("login")
+    def test_show_users(self):
+        response = self.client.get('/users/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
 
-    def test_login_GET(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn('utest1', content)
+        self.assertIn('utest2', content)
 
-    def test_login_POST(self):
-        # Test wrong creds
-        response = self.client.post(
-            self.url, {"username": "TestUser", "password": "testings"}
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed("users/create.html")
+    def test_create_user(self):
+        response = self.client.get('/users/create/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
 
-        # Test correct creds
-        response = self.client.post(
-            self.url, {"username": "TestUser", "password": "testing12"}
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "/")
+        response_redirect = self.client.post('/users/create/',
+                                             {"username": "utest3",
+                                              "password1": "ptest",
+                                              "password2": "ptest"})
 
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You have successfully registered', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
 
-@test.modify_settings(MIDDLEWARE={'remove': [
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-]})
-class TestLogoutView(TestCase):
-    def setUp(self) -> None:
-        self.client = Client()
-        self.u = get_user_model().objects.create_user(
-            username="TestUser", password="testing12"
-        )
-        self.client.login(username="TestUser", password="testing12")
-        self.url = reverse("logout")
+    def test_error_create_user(self):
+        response = self.client.post('/users/create/', {"username": "utest3#",
+                                                       "password1": "ptest",
+                                                       "password2": "ptest"})
+        content = response.content.decode()
+        self.assertIn('numbers and the symbols @/./+/-/_.', content)
 
-    def test_logout_POST(self):
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "/")
+        response = self.client.post('/users/create/', {"username": "utest3",
+                                                       "password1": "p",
+                                                       "password2": "p"})
+        content = response.content.decode()
+        self.assertIn('This password is too short.', content)
 
+        response = self.client.post('/users/create/', {"username": "utest1",
+                                                       "password1": "ppp",
+                                                       "password2": "ppp"})
+        content = response.content.decode()
+        self.assertIn('A user with that username already exists.', content)
 
-@test.modify_settings(MIDDLEWARE={'remove': [
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-]})
-class TestUpdateView(TestCase):
-    def setUp(self) -> None:
-        self.client = Client()
-        self.u = get_user_model().objects.create_user(
-            username="TestUser", password="testing12"
-        )
-        self.url = reverse("update_user", kwargs={"pk": self.u.pk})
+    def test_update_user(self):
+        self.client.login(username="utest1", password="ptest")
+        user_id = get_user_model().objects.get(username='utest2').id
+        response_redirect = self.client.get(f'/users/{user_id}/update/')
 
-    def test_update_GET(self):
-        # Test without login
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "/login/")
+        response = self.client.get('/users/')
+        content = response.content.decode()
+        self.assertIn('You do not have permission to modify another user.',
+                      content)
+        self.assertRedirects(response_redirect, '/users/', 302, 200)
 
-        # Test with login
-        self.client.login(username="TestUser", password="testing12")
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, text="TestUser", status_code=200)
+        user_id = get_user_model().objects.get(username='utest1').id
+        response = self.client.get(f'/users/{user_id}/update/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
 
-    def test_update_POST(self) -> None:
-        # Test wrong inputs
-        self.client.login(username="TestUser", password="testing12")
-        post_response = self.client.post(
-            self.url,
-            {
-                "first_name": "Test",
-                "last_name": "User",
-                "username": "TestUser",
-                "password2": "testing12",
-            },
-        )
-        self.assertEqual(post_response.status_code, 302)
-        self.assertEqual("", self.u.first_name)
+        response_redirect = self.client.post(f'/users/{user_id}/update/',
+                                             {"username": "utest10",
+                                              "password1": "ptest",
+                                              "password2": "ptest"})
+        response = self.client.get('/users/')
+        content = response.content.decode()
+        self.assertIn('User successfully changed', content)
+        self.assertIn('utest10', content)
+        self.assertIn('Log In', content)
+        self.assertRedirects(response_redirect, '/users/', 302, 200)
 
-        # Test correct inputs
-        self.client.login(username="TestUser", password="testing12")
-        post_response = self.client.post(
-            self.url,
-            {
-                "first_name": "Test",
-                "last_name": "User",
-                "username": "TestUser",
-                "password1": "testing12",
-                "password2": "testing12",
-            },
-        )
-        self.assertEqual(post_response.status_code, 302)
-        updated_user = get_user_model().objects.get(username="TestUser")
-        self.assertEqual("Test", updated_user.first_name)
+        self.client.login(username="utest10", password="ptest")
+        response = self.client.get(f'/users/{user_id}/update/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
 
+    def test_delete_user(self):
+        self.client.login(username="utest1", password="ptest")
 
-@test.modify_settings(MIDDLEWARE={'remove': [
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-]})
-class TestDeleteUserView(TestCase):
-    def setUp(self) -> None:
-        self.client = Client()
-        self.u = get_user_model().objects.create_user(
-            username="TestUser", first_name="Test", password="testing12"
-        )
-        self.u2 = get_user_model().objects.create_user(
-            username="TestUser2", first_name="Test", password="testing12"
-        )
-        self.url = reverse("delete_user", kwargs={"pk": self.u.pk})
-        self.url2 = reverse("delete_user", kwargs={"pk": self.u2.pk})
+        user_id = get_user_model().objects.get(username='utest2').id
+        response_redirect = self.client.get(f'/users/{user_id}/delete/')
+        response = self.client.get('/users/')
+        content = response.content.decode()
+        self.assertIn('You do not have permission to modify another user.',
+                      content)
+        self.assertRedirects(response_redirect, '/users/', 302, 200)
 
-    def test_delete_GET(self):
-        # Test without login
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)
+        user_id = get_user_model().objects.get(username='utest1').id
+        response = self.client.get(f'/users/{user_id}/delete/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
+        content = response.content.decode()
+        self.assertIn('utest1', content)
 
-        # Test attempt to delete wrong user
-        self.client.login(username="TestUser", password="testing12")
-        response = self.client.get(self.url2)
-        self.assertEqual(response.status_code, 302)
-
-        # Test with login
-        self.client.login(username="TestUser", password="testing12")
-        response = self.client.get(self.url)
-        self.assertContains(response, self.u.first_name, status_code=200)
-
-    def test_delete_POST(self):
-        self.client.login(username="TestUser2", password="testing12")
-        user_pk = self.u2.pk
-        users_pk = get_user_model().objects.values_list("pk")
-        response = self.client.post(self.url2)
-        self.assertEqual(response.status_code, 302)
-        self.assertNotIn(user_pk, users_pk)
-
-
-@test.modify_settings(MIDDLEWARE={'remove': [
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-]})
-class TestUsersViews(TestCase):
-    def test_main_index_view(self):
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-
-    def test_users_index_view(self):
-        response = self.client.get("/users/")
-        self.assertEqual(response.status_code, 200)
+        response_redirect = self.client.post(f'/users/{user_id}/delete/')
+        response = self.client.get('/users/')
+        content = response.content.decode()
+        self.assertIn('User deleted successfully', content)
+        self.assertNotIn('utest1', content)
+        self.assertIn('Log In', content)
+        self.assertRedirects(response_redirect, '/users/', 302, 200)
