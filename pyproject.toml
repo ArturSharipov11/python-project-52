@@ -20,8 +20,6 @@ psycopg = "^3.1.18"
 flake8 = "^7.0.0"
 django-filter = "^24.2"
 rollbar = "^0.16.3"
-poetry-plugin-dotenv = "^2.1.6"
-poetry-dotenv = "^0.4.0"
 i18n = "^0.2"
 coverage = "^7.5.3"
 
