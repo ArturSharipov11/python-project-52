@@ -1,60 +1,30 @@
-from django.test import TestCase, Client
+from django.test import TestCase
+from django.contrib.auth.models import User
 from django.urls import reverse
-from django.utils.translation import gettext as _
-from task_manager.statuses.models import Status
 
 
-class TestStatuses(TestCase):
-
-    fixtures = [
-        'statuses.json',
-        'labels.json',
-        'users.json',
-        'tasks.json'
-    ]
-
+class TestSetUpMixin(TestCase):
     def setUp(self):
-        self.client = Client()
-        self.client.force_login(Status.objects.first())
+        self.user = User.objects.create_user("user", "user@mail.ru", "1234")
 
-    def test_statuses_crud(self):
-        response = self.client.get(reverse('statuses'))
-        self.assertNotContains(response, 'Third status')
 
+class UserLoginTestCase(TestSetUpMixin):
+    def test_login(self):
         response = self.client.post(
-            reverse('statuses_create'), data={'name': 'Third status'}
+            reverse("login"),
+            {
+                'username': 'user',
+                'password': '1234'
+            },
+            follow=True
         )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], reverse('statuses'))
+        self.assertEqual(response.redirect_chain[0], ('/', 302))
+        self.assertContains(response, "Вы залогинены")
 
-        response = self.client.get(reverse('statuses'))
-        self.assertContains(response, 'Third status')
 
-        response = self.client.post(
-            reverse('statuses_update', kwargs={'pk': 4}),
-            data={'name': 'Updated'}
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], reverse('statuses'))
-
-        response = self.client.get(reverse('statuses'))
-        self.assertNotContains(response, 'Third status')
-        self.assertContains(response, 'Updated')
-
-        response = self.client.post(
-            reverse('statuses_delete', kwargs={'pk': 4})
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], reverse('statuses'))
-
-        response = self.client.get(reverse('statuses'))
-        self.assertNotContains(response, 'Updated')
-
-        response = self.client.post(
-            reverse('statuses_delete', kwargs={'pk': 1})
-        )
-        response = self.client.get(reverse('statuses'))
-        self.assertContains(
-            response,
-            _('Невозможно удалить статус, потому что он используется')
-        )
+class UserLogoutTestCase(TestSetUpMixin):
+    def test_logout(self):
+        self.client.login(username="user", password="1234")
+        response = self.client.post(reverse("logout"), follow=True)
+        self.assertEqual(response.redirect_chain[0], ('/', 302))
+        self.assertContains(response, "Вы разлогинены")
