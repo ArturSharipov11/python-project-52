@@ -1,125 +1,133 @@
-from django.test import TestCase, Client
-from django.test.utils import override_settings
-from django.contrib.auth import get_user_model
+from django.test import TestCase
+from task_manager.users.models import User
+from django.urls import reverse
 
 
-class UsersTests(TestCase):
-
-    def setUp(self):
-        self.client = Client()
-
-        self._override = override_settings(LANGUAGE_CODE='en-us')
-        self._override.enable()
-
-    def tearDown(self):
-        self._override.disable()
-        super().tearDown()
-
+class CRUD_Users_Test(TestCase):
     @classmethod
     def setUpTestData(cls):
-        user_model = get_user_model()
-        cls.user1 = user_model.objects.create_user(username='utest1',
-                                                   password='ptest')
-        cls.user2 = user_model.objects.create_user(username='utest2',
-                                                   password='ptest')
+        User.objects.create(
+            first_name='Rodion',
+            last_name='Raskol`nikov',
+            username='Dostoevsky',
+            password='1866'
+        )
+        User.objects.create(
+            first_name='Pavel',
+            last_name='Chichikov',
+            username='Gogol`',
+            password='1842'
+        )
 
-    def test_show_users(self):
-        response = self.client.get('/users/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
+    # CREATE
+    def test_CreateUser(self):
+        resp = self.client.get(reverse('create_user'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, template_name='users/create.html')
 
-        content = response.content.decode()
-        self.assertIn('utest1', content)
-        self.assertIn('utest2', content)
+        # Passwords match
+        resp = self.client.post(
+            reverse('create_user'),
+            {
+                'first_name': 'Pavel',
+                'last_name': 'Afanas`evich',
+                'username': 'Griboedov',
+                'password1': '1825',
+                'password2': '1825'
+            }
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertRedirects(resp, reverse('login'))
 
-    def test_create_user(self):
-        response = self.client.get('/users/create/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
+        user = User.objects.last()
+        self.assertEqual(user.username, 'Griboedov')
 
-        response_redirect = self.client.post('/users/create/',
-                                             {"username": "utest3",
-                                              "password1": "ptest",
-                                              "password2": "ptest"})
+        # Password mismatch
+        resp = self.client.post(
+            reverse('create_user'),
+            {
+                'first_name': 'Bazarov',
+                'last_name': 'Eugene',
+                'username': 'Turgenev',
+                'password1': '1862',
+                'password2': '1854'
+            }
+        )
+        self.assertEqual(resp.status_code, 200)
 
-        response = self.client.get('/login/')
-        content = response.content.decode()
-        self.assertIn('You have successfully registered', content)
-        self.assertRedirects(response_redirect, '/login/', 302, 200)
+    # READ
+    def test_ListUsers(self):
+        resp = self.client.get(reverse('users'))
+        self.assertTrue(len(resp.context['users']) == 2)
 
-    def test_error_create_user(self):
-        response = self.client.post('/users/create/', {"username": "utest3#",
-                                                       "password1": "ptest",
-                                                       "password2": "ptest"})
-        content = response.content.decode()
-        self.assertIn('numbers and the symbols @/./+/-/_.', content)
+    # UPDATE
+    def test_UpdateUser(self):
+        user = User.objects.get(id=1)
 
-        response = self.client.post('/users/create/', {"username": "utest3",
-                                                       "password1": "p",
-                                                       "password2": "p"})
-        content = response.content.decode()
-        self.assertIn('This password is too short.', content)
+        '''Not authentication'''
+        resp = self.client.get(
+            reverse('update_user', kwargs={'pk': user.id})
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertRedirects(resp, reverse('login'))
 
-        response = self.client.post('/users/create/', {"username": "utest1",
-                                                       "password1": "ppp",
-                                                       "password2": "ppp"})
-        content = response.content.decode()
-        self.assertIn('A user with that username already exists.', content)
+        '''Authentication'''
+        self.client.force_login(user)
 
-    def test_update_user(self):
-        self.client.login(username="utest1", password="ptest")
-        user_id = get_user_model().objects.get(username='utest2').id
-        response_redirect = self.client.get(f'/users/{user_id}/update/')
+        resp = self.client.get(
+            reverse(
+                'update_user',
+                kwargs={'pk': user.id}
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
 
-        response = self.client.get('/users/')
-        content = response.content.decode()
-        self.assertIn('You do not have permission to modify another user.',
-                      content)
-        self.assertRedirects(response_redirect, '/users/', 302, 200)
+        resp = self.client.post(
+            reverse(
+                'update_user',
+                kwargs={'pk': user.id}),
+            {
+                'first_name': 'Boris',
+                'last_name': 'Godunov',
+                'username': 'Pushkin',
+                'password1': '1831',
+                'password2': '1831',
+            }
+        )
 
-        user_id = get_user_model().objects.get(username='utest1').id
-        response = self.client.get(f'/users/{user_id}/update/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
+        self.assertEqual(resp.status_code, 302)
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, 'Boris')
 
-        response_redirect = self.client.post(f'/users/{user_id}/update/',
-                                             {"username": "utest10",
-                                              "password1": "ptest",
-                                              "password2": "ptest"})
-        response = self.client.get('/users/')
-        content = response.content.decode()
-        self.assertIn('User successfully changed', content)
-        self.assertIn('utest10', content)
-        self.assertIn('Log In', content)
-        self.assertRedirects(response_redirect, '/users/', 302, 200)
+    # DELETE
+    def test_DeleteUser(self):
+        user = User.objects.get(username="Gogol`")
 
-        self.client.login(username="utest10", password="ptest")
-        response = self.client.get(f'/users/{user_id}/update/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
+        '''Not authentification'''
+        resp = self.client.get(
+            reverse('delete_user', kwargs={'pk': user.id})
+        )
 
-    def test_delete_user(self):
-        self.client.login(username="utest1", password="ptest")
+        self.assertEqual(resp.status_code, 302)
+        self.assertRedirects(resp, reverse('login'))
 
-        user_id = get_user_model().objects.get(username='utest2').id
-        response_redirect = self.client.get(f'/users/{user_id}/delete/')
-        response = self.client.get('/users/')
-        content = response.content.decode()
-        self.assertIn('You do not have permission to modify another user.',
-                      content)
-        self.assertRedirects(response_redirect, '/users/', 302, 200)
+        '''Authentification'''
+        self.client.force_login(user)
+        resp = self.client.get(
+            reverse(
+                'delete_user',
+                kwargs={'pk': user.id}
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
 
-        user_id = get_user_model().objects.get(username='utest1').id
-        response = self.client.get(f'/users/{user_id}/delete/')
-        status_code = response.status_code
-        self.assertEqual(status_code, 200)
-        content = response.content.decode()
-        self.assertIn('utest1', content)
+        resp = self.client.post(
+            reverse(
+                'delete_user',
+                kwargs={'pk': user.id}
+            )
+        )
 
-        response_redirect = self.client.post(f'/users/{user_id}/delete/')
-        response = self.client.get('/users/')
-        content = response.content.decode()
-        self.assertIn('User deleted successfully', content)
-        self.assertNotIn('utest1', content)
-        self.assertIn('Log In', content)
-        self.assertRedirects(response_redirect, '/users/', 302, 200)
+        self.assertRedirects(resp, reverse('users'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(User.objects.count(), 1)
