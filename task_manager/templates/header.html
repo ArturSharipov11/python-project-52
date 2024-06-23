@@ -14,7 +14,7 @@
         <a class="navbar-brand nav-link" href="{% url 'home' %}">{% translate "Task manger" %}</a>
       </li>
       <li class="nav-item active">
-        <a class="nav-link" href="{% url 'users' %}">{% translate "Users" %}</a>
+        <a class="nav-link" href="{% url 'index_users' %}">{% translate "Users" %}</a>
       </li>
 
       {% if user.is_authenticated %}

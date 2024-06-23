@@ -2,14 +2,19 @@ from typing import Any
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.db.models.deletion import ProtectedError
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
+
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
+
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse_lazy
+
 from .forms import CreateUserForm
+
 from task_manager.mixins import NoAuthMixin, NoPermissionMixin
 
 
@@ -38,7 +43,7 @@ class UpdateUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                  UpdateView):
     form_class = CreateUserForm
     template_name = 'users/update.html'
-    success_url = reverse_lazy('users')
+    success_url = reverse_lazy('index_users')
     success_message = _('User successfully changed')
 
     def get(self, request: HttpRequest,
@@ -48,7 +53,7 @@ class UpdateUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
         if url_id != user_id:
             messages.add_message(self.request, messages.ERROR,
                                  MESS_PERMISSION)
-            return redirect(reverse_lazy('users'))
+            return redirect(reverse_lazy('index_users'))
 
         return super().get(request, *args, **kwargs)
 
@@ -66,7 +71,7 @@ class UpdateUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
 class DeleteUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                  DeleteView):
     template_name = 'users/delete.html'
-    success_url = reverse_lazy('users')
+    success_url = reverse_lazy('index_users')
     success_message = _('User deleted successfully')
 
     def get(self, request: HttpRequest,
@@ -76,7 +81,7 @@ class DeleteUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
         if url_id != user_id:
             messages.add_message(self.request, messages.ERROR,
                                  MESS_PERMISSION)
-            return redirect(reverse_lazy('users'))
+            return redirect(reverse_lazy('index_users'))
 
         return super().get(request, *args, **kwargs)
 
@@ -95,4 +100,4 @@ class DeleteUser(NoPermissionMixin, NoAuthMixin, SuccessMessageMixin,
                 request, messages.ERROR,
                 _("The user cannot be deleted because it is in use.")
             )
-            return redirect(reverse_lazy('users'))
+            return redirect(reverse_lazy('index_users'))
