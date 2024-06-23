@@ -1,231 +1,125 @@
 from django.test import TestCase, Client
-from django.urls import reverse_lazy
-from django.http import HttpResponse
-from django.forms.utils import ErrorDict
-from django.core.exceptions import ObjectDoesNotExist
-from http import HTTPStatus
-from typing import List, Dict
-from task_manager.users.models import User
+from django.test.utils import override_settings
+from django.contrib.auth import get_user_model
 
 
-class UsersTest(TestCase):
+class UsersTests(TestCase):
 
-    fixtures = ['user.json']
+    def setUp(self):
+        self.client = Client()
 
-    VALID_DATA: Dict[str, str] = {
-        'username': 'lockedroom',
-        'first_name': 'Harry',
-        'last_name': 'Potter',
-        'password1': 'Password123',
-        'password2': 'Password123'
-    }
+        self._override = override_settings(LANGUAGE_CODE='en-us')
+        self._override.enable()
 
-    def setUp(self) -> None:
-        self.client: Client = Client()
-        self.user1: User = User.objects.get(pk=1)
-        self.user2: User = User.objects.get(pk=2)
-        self.user3: User = User.objects.get(pk=3)
+    def tearDown(self):
+        self._override.disable()
+        super().tearDown()
 
-    # DB TESTING
+    @classmethod
+    def setUpTestData(cls):
+        user_model = get_user_model()
+        cls.user1 = user_model.objects.create_user(username='utest1',
+                                                   password='ptest')
+        cls.user2 = user_model.objects.create_user(username='utest2',
+                                                   password='ptest')
 
-    def assertUser(self, user, user_data) -> None:
-        self.assertEqual(user.__str__(), user_data['name'])
-        self.assertEqual(user.username, user_data['username'])
-        self.assertEqual(user.first_name, user_data['first_name'])
-        self.assertEqual(user.last_name, user_data['last_name'])
+    def test_show_users(self):
+        response = self.client.get('/users/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
 
-    def test_user_exists(self) -> None:
-        response: HttpResponse = self.client.get(reverse_lazy('users'))
+        content = response.content.decode()
+        self.assertIn('utest1', content)
+        self.assertIn('utest2', content)
 
-        users_list: List = list(response.context['users'])
-        self.assertTrue(len(users_list) == 3)
+    def test_create_user(self):
+        response = self.client.get('/users/create/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
 
-        user1, user2, user3 = users_list
-        self.assertEqual(user1.username, 'Quidditch-Seeker')
-        self.assertEqual(user1.first_name, 'Hary')
-        self.assertEqual(user1.last_name, 'Poter')
-        self.assertEqual(user2.username, '@Ron_Weas1ey')
-        self.assertEqual(user2.first_name, 'Ronald')
-        self.assertEqual(user2.last_name, 'Weasley')
-        self.assertEqual(user3.username, 'ms.Granger')
-        self.assertEqual(user3.first_name, 'Hermione Jean')
-        self.assertEqual(user3.last_name, 'Granger')
+        response_redirect = self.client.post('/users/create/',
+                                             {"username": "utest3",
+                                              "password1": "ptest",
+                                              "password2": "ptest"})
 
-    def test_user_model_representation(self) -> None:
-        response: HttpResponse = self.client.get(reverse_lazy('users'))
+        response = self.client.get('/login/')
+        content = response.content.decode()
+        self.assertIn('You have successfully registered', content)
+        self.assertRedirects(response_redirect, '/login/', 302, 200)
 
-        users_list: List = list(response.context['users'])
+    def test_error_create_user(self):
+        response = self.client.post('/users/create/', {"username": "utest3#",
+                                                       "password1": "ptest",
+                                                       "password2": "ptest"})
+        content = response.content.decode()
+        self.assertIn('numbers and the symbols @/./+/-/_.', content)
 
-        user1, user2, user3 = users_list
-        self.assertEqual(user1.__str__(), 'Hary Poter')
-        self.assertEqual(user2.__str__(), 'Ronald Weasley')
-        self.assertEqual(user3.__str__(), 'Hermione Jean Granger')
+        response = self.client.post('/users/create/', {"username": "utest3",
+                                                       "password1": "p",
+                                                       "password2": "p"})
+        content = response.content.decode()
+        self.assertIn('This password is too short.', content)
 
-    # LIST VIEW TESTING
+        response = self.client.post('/users/create/', {"username": "utest1",
+                                                       "password1": "ppp",
+                                                       "password2": "ppp"})
+        content = response.content.decode()
+        self.assertIn('A user with that username already exists.', content)
 
-    def test_users_list_view(self) -> None:
-        response: HttpResponse = self.client.get(reverse_lazy('users'))
+    def test_update_user(self):
+        self.client.login(username="utest1", password="ptest")
+        user_id = get_user_model().objects.get(username='utest2').id
+        response_redirect = self.client.get(f'/users/{user_id}/update/')
 
-        self.assertTemplateUsed(response, template_name='users/users.html')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+        response = self.client.get('/users/')
+        content = response.content.decode()
+        self.assertIn('You do not have permission to modify another user.',
+                      content)
+        self.assertRedirects(response_redirect, '/users/', 302, 200)
 
-    def test_users_list_view_has_create_link(self) -> None:
-        response: HttpResponse = self.client.get(reverse_lazy('users'))
-        self.assertContains(response, '/users/create/')
+        user_id = get_user_model().objects.get(username='utest1').id
+        response = self.client.get(f'/users/{user_id}/update/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
 
-    def test_users_list_view_has_update_and_delete_links(self) -> None:
-        response: HttpResponse = self.client.get(reverse_lazy('users'))
-        for user_id in range(1, len(response.context['users']) + 1):
-            self.assertContains(response, '/users/{}/update/'.format(user_id))
-            self.assertContains(response, '/users/{}/delete/'.format(user_id))
+        response_redirect = self.client.post(f'/users/{user_id}/update/',
+                                             {"username": "utest10",
+                                              "password1": "ptest",
+                                              "password2": "ptest"})
+        response = self.client.get('/users/')
+        content = response.content.decode()
+        self.assertIn('User successfully changed', content)
+        self.assertIn('utest10', content)
+        self.assertIn('Log In', content)
+        self.assertRedirects(response_redirect, '/users/', 302, 200)
 
-    def test_user_create_post_with_validation_errors(self) -> None:
-        ROUTE = reverse_lazy('sign_up')
+        self.client.login(username="utest10", password="ptest")
+        response = self.client.get(f'/users/{user_id}/update/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
 
-        # Username is required
-        params: Dict[str, str] = UsersTest.VALID_DATA.copy()
-        params.update({'username': ''})
+    def test_delete_user(self):
+        self.client.login(username="utest1", password="ptest")
 
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        errors: ErrorDict = response.context['form'].errors
-        self.assertIn('username', errors)
-        self.assertEqual(
-            ['Обязательное поле.'],
-            errors['username']
-        )
+        user_id = get_user_model().objects.get(username='utest2').id
+        response_redirect = self.client.get(f'/users/{user_id}/delete/')
+        response = self.client.get('/users/')
+        content = response.content.decode()
+        self.assertIn('You do not have permission to modify another user.',
+                      content)
+        self.assertRedirects(response_redirect, '/users/', 302, 200)
 
-        # Username too long
-        params: Dict[str, str] = UsersTest.VALID_DATA.copy()
-        params.update({'username': 'lockedroom' * 10})  # len == 190
+        user_id = get_user_model().objects.get(username='utest1').id
+        response = self.client.get(f'/users/{user_id}/delete/')
+        status_code = response.status_code
+        self.assertEqual(status_code, 200)
+        content = response.content.decode()
+        self.assertIn('utest1', content)
 
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        errors: ErrorDict = response.context['form'].errors
-        self.assertIn('username', errors)
-        self.assertEqual(
-            ['Убедитесь, что это значение содержит не более 150 символов '
-                + '(сейчас {}).'.format(len(params['username']))],
-            errors['username']
-        )
-
-        # Username contains a space
-        params: Dict[str, str] = UsersTest.VALID_DATA.copy()
-        params.update({'username': 'The Boy Who Lived'})
-
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        errors: ErrorDict = response.context['form'].errors
-        self.assertIn('username', errors)
-        # ToDo
-
-        # Firstname is required
-        params: Dict[str, str] = UsersTest.VALID_DATA.copy()
-        params.update({'first_name': ''})
-
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        errors: ErrorDict = response.context['form'].errors
-        self.assertIn('first_name', errors)
-        self.assertEqual(
-            ['Обязательное поле.'],
-            errors['first_name']
-        )
-
-        # Firstname too long
-        params: Dict[str, str] = UsersTest.VALID_DATA.copy()
-        params.update({'first_name': 'Harry' * 40})  # len == 200
-
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        errors: ErrorDict = response.context['form'].errors
-        self.assertIn('first_name', errors)
-        self.assertEqual(
-            ['Убедитесь, что это значение содержит не более 150 символов '
-                + '(сейчас {}).'.format(len(params['first_name']))],
-            errors['first_name']
-        )
-
-        # Lastname is required
-        params: Dict[str, str] = UsersTest.VALID_DATA.copy()
-        params.update({'last_name': ''})
-
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        errors: ErrorDict = response.context['form'].errors
-        self.assertIn('last_name', errors)
-        self.assertEqual(
-            ['Обязательное поле.'],
-            errors['last_name']
-        )
-
-        # Lastname too long
-        params: Dict[str, str] = UsersTest.VALID_DATA.copy()
-        params.update({'last_name': 'Potter' * 30})  # len == 180
-
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        errors: ErrorDict = response.context['form'].errors
-        self.assertIn('last_name', errors)
-        self.assertEqual(
-            ['Убедитесь, что это значение содержит не более 150 символов '
-                + '(сейчас {}).'.format(len(params['last_name']))],
-            errors['last_name']
-        )
-
-    def test_user_create(self) -> None:
-        ROUTE = reverse_lazy('sign_up')
-
-        params: Dict[str, str] = UsersTest.VALID_DATA.copy()
-
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        self.assertTrue(User.objects.get(id=4))
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertRedirects(response, reverse_lazy('login'))
-
-    # UPDATE VIEW TESTING
-
-    def test_user_update_view(self) -> None:
-        ROUTE = reverse_lazy('user_update', args=[self.user1.id])
-
-        self.client.force_login(self.user1)
-        response: HttpResponse = self.client.get(ROUTE)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTemplateUsed(response, template_name='users/users.html')
-
-    def test_user_update(self) -> None:
-        ROUTE = reverse_lazy('user_update', args=[self.user1.id])
-
-        original_objs_count: int = len(User.objects.all())
-        params: Dict[str, str] = UsersTest.VALID_DATA
-        params.update({'email': 'harry_potter@hogwarts.mail'})
-
-        self.client.force_login(self.user1)
-        response: HttpResponse = self.client.post(ROUTE, data=params)
-        final_objs_count: int = len(User.objects.all())
-        self.assertTrue(final_objs_count == original_objs_count)
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertRedirects(response, reverse_lazy('users'))
-
-        updated_user: User = User.objects.get(id=self.user1.id)
-        self.assertEqual(updated_user.username, params['username'])
-        self.assertEqual(updated_user.first_name, params['first_name'])
-        self.assertEqual(updated_user.last_name, params['last_name'])
-        self.assertEqual(updated_user.email, params['email'])
-
-    # DELETE VIEW TESTING
-
-    def test_user_delete_view(self) -> None:
-        ROUTE = reverse_lazy('user_delete', args=[self.user1.id])
-
-        self.client.force_login(self.user1)
-        response: HttpResponse = self.client.get(ROUTE)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTemplateUsed(response, template_name='users/delete.html')
-
-    def test_user_delete(self) -> None:
-        ROUTE = reverse_lazy('user_delete', args=[self.user1.id])
-
-        original_objs_count: int = len(User.objects.all())
-
-        self.client.force_login(self.user1)
-        response: HttpResponse = self.client.post(ROUTE)
-        final_objs_count: int = len(User.objects.all())
-        self.assertTrue(final_objs_count == original_objs_count - 1)
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertRedirects(response, reverse_lazy('users'))
-        with self.assertRaises(ObjectDoesNotExist):
-            User.objects.get(id=self.user1.id)
+        response_redirect = self.client.post(f'/users/{user_id}/delete/')
+        response = self.client.get('/users/')
+        content = response.content.decode()
+        self.assertIn('User deleted successfully', content)
+        self.assertNotIn('utest1', content)
+        self.assertIn('Log In', content)
+        self.assertRedirects(response_redirect, '/users/', 302, 200)
