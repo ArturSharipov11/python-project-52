@@ -1,0 +1,16 @@
+[
+    {
+        "model": "tasks.task",
+        "pk": 1,
+        "fields": {
+            "name": "artur",
+            "description":
+            "football",
+            "status": 1,
+            "author": 2,
+            "executor": 3,
+            "timestamp": "2024-06-23T10:48:54.932Z",
+            "labels": []
+            }
+            }
+        ]

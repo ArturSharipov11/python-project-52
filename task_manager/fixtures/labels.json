@@ -1,0 +1,11 @@
+[
+    {
+        "model": "labels.label",
+        "pk": 1,
+        "fields":
+        {
+            "name": "euro2024",
+            "timestamp": "2024-06-23T10:48:28.198Z"
+            }
+            }
+        ]
