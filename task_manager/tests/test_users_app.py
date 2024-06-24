@@ -38,7 +38,6 @@ class UsersTests(TestCase):
         m for m in settings.MIDDLEWARE
         if m != 'rollbar.contrib.django.middleware.RollbarNotifierMiddleware'
     ])
-
     @override_settings(MIDDLEWARE=[
         m for m in settings.MIDDLEWARE
         if m != 'rollbar.contrib.django.middleware.RollbarNotifierMiddleware'
@@ -107,7 +106,8 @@ class UsersTests(TestCase):
         response = self.client.post(url, {
             "first_name": "Test",
             "last_name": "User",
-            "username": "TestUser","password2": "testing12",
+            "username": "TestUser",
+            "password2": "testing12",
         })
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
